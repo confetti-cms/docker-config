@@ -134,4 +134,4 @@ For more information about the use cases and design decisions, see:
 go test -v
 ```
 
-This will run all test scenarios including exact matches, non-matches, and wildcard scenarios for both container names and targets.# docker-config
+This will run all test scenarios including exact matches, non-matches, and wildcard scenarios for both container names and targets.
