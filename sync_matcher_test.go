@@ -11,11 +11,11 @@ func Test_container_name_exact_match(t *testing.T) {
 
 	// Given: Two JSON objects with matching container_name values
 	requested := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 	}
 
 	granted := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -30,11 +30,11 @@ func Test_container_name_no_match(t *testing.T) {
 
 	// Given: Two JSON objects with different container_name values
 	requested := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 	}
 
 	granted := map[string]string{
-		"container_name": "vendor/confetti-cms/different/container",
+		"container_name": "video",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -49,7 +49,7 @@ func Test_container_name_wildcard_match(t *testing.T) {
 
 	// Given: Requested object with both fields and granted object with "*" wildcard for container_name only
 	requested := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
@@ -108,12 +108,12 @@ func Test_target_wildcard_match(t *testing.T) {
 
 	// Given: Requested object with both fields and granted object with "*" wildcard for target only
 	requested := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
 	granted := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "*",
 	}
 
@@ -129,12 +129,12 @@ func Test_partial_match_fails(t *testing.T) {
 
 	// Given: Container name matches but target doesn't
 	requested := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
 	granted := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "all_up",
 	}
 
@@ -150,7 +150,7 @@ func Test_container_name_wildcard_but_target_mismatch(t *testing.T) {
 
 	// Given: Container name matches via wildcard but target doesn't
 	requested := map[string]string{
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
@@ -229,12 +229,12 @@ func Test_host_matches_but_container_name_mismatch(t *testing.T) {
 	// Given: Host matches but container_name doesn't
 	requested := map[string]string{
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 	}
 
 	granted := map[string]string{
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/different/container",
+		"container_name": "video",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -271,13 +271,13 @@ func Test_all_three_fields_match(t *testing.T) {
 	// Given: All three fields match exactly
 	requested := map[string]string{
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
 	granted := map[string]string{
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
@@ -294,13 +294,13 @@ func Test_host_wildcard_with_other_fields(t *testing.T) {
 	// Given: Host matches via wildcard, other fields match exactly
 	requested := map[string]string{
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
 	granted := map[string]string{
 		"host":           "*",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
@@ -395,12 +395,12 @@ func Test_schema_matches_but_container_name_mismatch(t *testing.T) {
 	// Given: Schema matches but container_name doesn't
 	requested := map[string]string{
 		"schema":         "image",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 	}
 
 	granted := map[string]string{
 		"schema":         "image",
-		"container_name": "vendor/confetti-cms/different/container",
+		"container_name": "video",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -417,14 +417,14 @@ func Test_all_four_fields_match(t *testing.T) {
 	requested := map[string]string{
 		"schema":         "image",
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
 	granted := map[string]string{
 		"schema":         "image",
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
@@ -442,14 +442,14 @@ func Test_schema_wildcard_with_other_fields(t *testing.T) {
 	requested := map[string]string{
 		"schema":         "image",
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
 	granted := map[string]string{
 		"schema":         "*",
 		"host":           "localhost",
-		"container_name": "vendor/confetti-cms/image/container",
+		"container_name": "image",
 		"target":         "cmd",
 	}
 
@@ -857,7 +857,7 @@ func Test_all_nine_fields_match(t *testing.T) {
 	requested := map[string]string{
 		"schema":                "image",
 		"host":                  "localhost",
-		"container_name":        "vendor/confetti-cms/image/container",
+		"container_name":        "image",
 		"target":                "cmd",
 		"action":                "read",
 		"source_organization":   "myorg",
@@ -869,7 +869,7 @@ func Test_all_nine_fields_match(t *testing.T) {
 	granted := map[string]string{
 		"schema":                "image",
 		"host":                  "localhost",
-		"container_name":        "vendor/confetti-cms/image/container",
+		"container_name":        "image",
 		"target":                "cmd",
 		"action":                "read",
 		"source_organization":   "myorg",

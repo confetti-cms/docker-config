@@ -154,3 +154,28 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	// All specified fields match
 	return true
 }
+
+// FilterMatchingRequests compares multiple requested objects against multiple granted objects
+// and returns all requested objects that match at least one granted object
+// Parameters:
+//   - requested: Slice of objects containing the requested permissions/values
+//   - granted: Slice of objects containing the granted permissions/values (may contain "*" wildcards)
+//
+// Returns:
+//   - Slice of requested objects that match at least one granted object
+func FilterMatchingRequests(requested []map[string]string, granted []map[string]string) []map[string]string {
+	var matched []map[string]string
+
+	// For each requested object, check if it matches any granted object
+	for _, req := range requested {
+		for _, gran := range granted {
+			if SyncMatcher(req, gran) {
+				// Add to matched results and break to avoid duplicates
+				matched = append(matched, req)
+				break
+			}
+		}
+	}
+
+	return matched
+}
