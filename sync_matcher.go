@@ -153,6 +153,4 @@ func SyncMatcher(requested, granted map[string]string) bool {
 
 	// All specified fields match
 	return true
-
-	return false
 }

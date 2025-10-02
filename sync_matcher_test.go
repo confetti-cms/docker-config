@@ -465,11 +465,11 @@ func Test_action_exact_match(t *testing.T) {
 
 	// Given: Two JSON objects with matching action values
 	requested := map[string]string{
-		"action": "push",
+		"action": "read",
 	}
 
 	granted := map[string]string{
-		"action": "push",
+		"action": "read",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -484,7 +484,7 @@ func Test_action_wildcard_match(t *testing.T) {
 
 	// Given: Requested object with action field and granted object with "*" wildcard for action
 	requested := map[string]string{
-		"action": "push",
+		"action": "read",
 	}
 
 	granted := map[string]string{
@@ -503,11 +503,11 @@ func Test_action_no_match(t *testing.T) {
 
 	// Given: Two JSON objects with different action values
 	requested := map[string]string{
-		"action": "push",
+		"action": "read",
 	}
 
 	granted := map[string]string{
-		"action": "pull",
+		"action": "write",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -522,12 +522,12 @@ func Test_action_matches_but_schema_mismatch(t *testing.T) {
 
 	// Given: Action matches but schema doesn't
 	requested := map[string]string{
-		"action": "push",
+		"action": "read",
 		"schema": "image",
 	}
 
 	granted := map[string]string{
-		"action": "push",
+		"action": "read",
 		"schema": "hive",
 	}
 
@@ -601,12 +601,12 @@ func Test_source_organization_matches_but_action_mismatch(t *testing.T) {
 	// Given: Source organization matches but action doesn't
 	requested := map[string]string{
 		"source_organization": "myorg",
-		"action":              "push",
+		"action":              "read",
 	}
 
 	granted := map[string]string{
 		"source_organization": "myorg",
-		"action":              "pull",
+		"action":              "write",
 	}
 
 	// When: SyncMatcher compares the objects
@@ -859,7 +859,7 @@ func Test_all_nine_fields_match(t *testing.T) {
 		"host":                  "localhost",
 		"container_name":        "vendor/confetti-cms/image/container",
 		"target":                "cmd",
-		"action":                "push",
+		"action":                "read",
 		"source_organization":   "myorg",
 		"source_repository":     "myrepo",
 		"umbrella_organization": "parentorg",
@@ -871,7 +871,7 @@ func Test_all_nine_fields_match(t *testing.T) {
 		"host":                  "localhost",
 		"container_name":        "vendor/confetti-cms/image/container",
 		"target":                "cmd",
-		"action":                "push",
+		"action":                "read",
 		"source_organization":   "myorg",
 		"source_repository":     "myrepo",
 		"umbrella_organization": "parentorg",

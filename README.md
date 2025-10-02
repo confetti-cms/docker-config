@@ -1,20 +1,17 @@
 # SyncMatcher
 
-A flexible JSON object matcher that supports wildcard matching for permission and configuration validation.
+A flexible permission matcher that supports wildcard matching for configuration validation.
 
-## Overview
+## Why Should You Care?
 
-`SyncMatcher` compares two JSON objects and returns `true` if they match, with support for wildcard `"*"` matching across multiple fields including schema, host, container details, actions, and organizational information.
+Permission matching isn't just for security nerds. If you want to know who can do what, and why your website sometimes says "nope," you're in the right place. They're your best friends when you want the user to:
 
-## Features
+- Only edit their own blog posts (not someone else's)
+- View all values on a page, but only edit a select few
+- Invite another user to edit blogs in a specific category
+- Allow someone to edit a draft article, but only let the admin publish and further modify the page
 
-- **Exact matching**: Objects must be identical to match
-- **Wildcard support**: Supports `"*"` wildcard across all supported fields
-- **Multi-field matching**: Supports schema, host, container_name, target, action, and organizational fields
-- **Type-safe comparison**: Works specifically with `map[string]string` types for key-value permission matching
-- **Field-specific logic**: Each field type has its own matching rules
-
-## Usage
+## Basic Usage
 
 ```go
 result := SyncMatcher(requested, granted)
@@ -33,23 +30,24 @@ func SyncMatcher(requested, granted map[string]string) bool
 
 ## Supported Fields
 
-The `SyncMatcher` supports matching across the following fields:
+| Field | Description |
+|-------|-------------|
+| `schema` | The schema type (e.g., "image", "hive", or other custom values) |
+| `host` | The host or endpoint identifier |
+| `container_name` | The container identifier or path |
+| `target` | The target operation or command |
+| `action` | The action being performed (e.g., "push", "pull") |
+| `source_organization` | The source organization identifier |
+| `source_repository` | The source repository identifier |
+| `umbrella_organization` | The umbrella/parent organization identifier |
+| `umbrella_repository` | The umbrella/parent repository identifier |
 
-- **schema**: The schema type (e.g., "image", "hive", or other custom values)
-- **host**: The host or endpoint identifier
-- **container_name**: The container identifier or path
-- **target**: The target operation or command
-- **action**: The action being performed (e.g., "push", "pull")
-- **source_organization**: The source organization identifier
-- **source_repository**: The source repository identifier
-- **umbrella_organization**: The umbrella/parent organization identifier
-- **umbrella_repository**: The umbrella/parent repository identifier
-
-## Wildcard Matching Rules
+## Wildcard Matching
 
 All supported fields support wildcard `"*"` matching:
 
 ### Schema Matching
+
 ```go
 // Example: Grant access to any schema type
 granted := map[string]string{
@@ -62,6 +60,7 @@ requested := map[string]string{
 ```
 
 ### Host Matching
+
 ```go
 // Example: Grant access to any host
 granted := map[string]string{
@@ -74,6 +73,7 @@ requested := map[string]string{
 ```
 
 ### Container Name Matching
+
 ```go
 // Example: Grant access to any container
 granted := map[string]string{
@@ -85,19 +85,8 @@ requested := map[string]string{
 // Result: true (wildcard matches any non-empty container name)
 ```
 
-### Target Matching
-```go
-// Example: Grant access to any target
-granted := map[string]string{
-    "target": "*",
-}
-requested := map[string]string{
-    "target": "cmd",
-}
-// Result: true (wildcard matches any non-empty target)
-```
-
 ### Multiple Field Wildcards
+
 You can use wildcards across multiple fields simultaneously:
 
 ```go
@@ -117,83 +106,32 @@ requested := map[string]string{
 
 ## Test Examples
 
-The following test scenarios demonstrate the matching behavior across all supported fields:
+### Exact Matches
 
-### Exact Match Tests
-```go
-// Schema exact match
-requested := map[string]string{"schema": "image"}
-granted := map[string]string{"schema": "image"}
-// Result: true
+| Requested | Granted | Result |
+|-----------|---------|--------|
+| `{"schema": "image"}` | `{"schema": "image"}` | ✅ `true` |
+| `{"host": "localhost"}` | `{"host": "localhost"}` | ✅ `true` |
+| `{"container_name": "vendor/confetti-cms/image/container"}` | `{"container_name": "vendor/confetti-cms/image/container"}` | ✅ `true` |
 
-// Host exact match
-requested := map[string]string{"host": "localhost"}
-granted := map[string]string{"host": "localhost"}
-// Result: true
+### No Matches
 
-// Container name exact match
-requested := map[string]string{"container_name": "vendor/confetti-cms/image/container"}
-granted := map[string]string{"container_name": "vendor/confetti-cms/image/container"}
-// Result: true
+| Requested | Granted | Result |
+|-----------|---------|--------|
+| `{"schema": "image"}` | `{"schema": "hive"}` | ❌ `false` |
+| `{"host": "localhost"}` | `{"host": "remotehost"}` | ❌ `false` |
+| `{"container_name": "vendor/confetti-cms/image/container"}` | `{"container_name": "vendor/confetti-cms/different/container"}` | ❌ `false` |
 
-// Target exact match
-requested := map[string]string{"target": "cmd"}
-granted := map[string]string{"target": "cmd"}
-// Result: true
+### Wildcard Matches
 
-// Action exact match
-requested := map[string]string{"action": "push"}
-granted := map[string]string{"action": "push"}
-// Result: true
-```
-
-### No Match Tests
-```go
-// Schema no match
-requested := map[string]string{"schema": "image"}
-granted := map[string]string{"schema": "hive"}
-// Result: false
-
-// Host no match
-requested := map[string]string{"host": "localhost"}
-granted := map[string]string{"host": "remotehost"}
-// Result: false
-
-// Container name no match
-requested := map[string]string{"container_name": "vendor/confetti-cms/image/container"}
-granted := map[string]string{"container_name": "vendor/confetti-cms/different/container"}
-// Result: false
-
-// Target no match
-requested := map[string]string{"target": "cmd"}
-granted := map[string]string{"target": "different"}
-// Result: false
-```
-
-### Wildcard Match Tests
-```go
-// Schema wildcard match
-requested := map[string]string{"schema": "image"}
-granted := map[string]string{"schema": "*"}
-// Result: true
-
-// Host wildcard match
-requested := map[string]string{"host": "localhost"}
-granted := map[string]string{"host": "*"}
-// Result: true
-
-// Container name wildcard match
-requested := map[string]string{"container_name": "vendor/confetti-cms/image/container"}
-granted := map[string]string{"container_name": "*"}
-// Result: true
-
-// Target wildcard match
-requested := map[string]string{"target": "cmd"}
-granted := map[string]string{"target": "*"}
-// Result: true
-```
+| Requested | Granted | Result |
+|-----------|---------|--------|
+| `{"schema": "image"}` | `{"schema": "*"}` | ✅ `true` |
+| `{"host": "localhost"}` | `{"host": "*"}` | ✅ `true` |
+| `{"container_name": "vendor/confetti-cms/image/container"}` | `{"container_name": "*"}` | ✅ `true` |
 
 ### Complex Multi-Field Examples
+
 ```go
 // Multiple field combination with wildcards
 requested := map[string]string{
@@ -228,14 +166,9 @@ granted := map[string]string{
 
 ## Implementation Details
 
-The matcher uses Go's `reflect.DeepEqual` for exact matching and provides additional wildcard logic for all supported fields. It works directly with `map[string]string` types and checks for non-empty string values when wildcards are used across any of the nine supported fields (schema, host, container_name, target, action, source_organization, source_repository, umbrella_organization, umbrella_repository).
+The matcher uses Go's `reflect.DeepEqual` for exact matching and provides additional wildcard logic for all supported fields. It works directly with `map[string]string` types and checks for non-empty string values when wildcards are used.
 
 All specified fields in the `granted` object must match their corresponding fields in the `requested` object, either exactly or via wildcard. Fields not present in the `granted` object are not required for matching.
-
-## Related Documentation
-
-For more information about the use cases and design decisions, see:
-- [GitHub Discussion #22](https://github.com/confetti-cms/community/discussions/22)
 
 ## Running Tests
 
@@ -250,3 +183,8 @@ This will run all test scenarios including:
 - Comprehensive coverage of schema, host, container, action, and organizational field matching
 
 The test suite includes 41 test cases covering all supported fields and their various matching scenarios.
+
+## Related Documentation
+
+For more information about the use cases and design decisions, see:
+- [GitHub Discussion #22](https://github.com/confetti-cms/community/discussions/22)
