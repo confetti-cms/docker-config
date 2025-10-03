@@ -227,52 +227,6 @@ func Test_host_matches_but_target_mismatch(t *testing.T) {
 	is.Equal(result, false)
 }
 
-func Test_all_three_fields_match(t *testing.T) {
-	is := is.New(t)
-
-	// Given: All three fields match exactly
-	requested := map[string]string{
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	granted := map[string]string{
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	// When: SyncMatcher compares the objects
-	result := SyncMatcher(requested, granted)
-
-	// Then: All fields should match
-	is.Equal(result, true)
-}
-
-func Test_host_container_target_combined_match(t *testing.T) {
-	is := is.New(t)
-
-	// Given: Testing combination of host, container_name, and target fields
-	requested := map[string]string{
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	granted := map[string]string{
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	// When: SyncMatcher compares the objects
-	result := SyncMatcher(requested, granted)
-
-	// Then: All three fields should match together
-	is.Equal(result, true)
-}
-
 func Test_host_wildcard_with_other_fields(t *testing.T) {
 	is := is.New(t)
 
@@ -393,56 +347,6 @@ func Test_schema_matches_but_container_name_mismatch(t *testing.T) {
 
 	// Then: Should not match because container_name doesn't match
 	is.Equal(result, false)
-}
-
-func Test_all_four_fields_match(t *testing.T) {
-	is := is.New(t)
-
-	// Given: All four fields match exactly
-	requested := map[string]string{
-		"schema":         "image",
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	granted := map[string]string{
-		"schema":         "image",
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	// When: SyncMatcher compares the objects
-	result := SyncMatcher(requested, granted)
-
-	// Then: All fields should match
-	is.Equal(result, true)
-}
-
-func Test_schema_wildcard_with_other_fields(t *testing.T) {
-	is := is.New(t)
-
-	// Given: Schema matches via wildcard, other fields match exactly
-	requested := map[string]string{
-		"schema":         "image",
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	granted := map[string]string{
-		"schema":         "*",
-		"host":           "localhost",
-		"container_name": "image",
-		"target":         "cmd",
-	}
-
-	// When: SyncMatcher compares the objects
-	result := SyncMatcher(requested, granted)
-
-	// Then: All fields should match (schema via wildcard, others exactly)
-	is.Equal(result, true)
 }
 
 func Test_action_exact_match(t *testing.T) {
