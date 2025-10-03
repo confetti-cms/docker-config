@@ -884,3 +884,799 @@ func Test_all_nine_fields_match(t *testing.T) {
 	// Then: All fields should match
 	is.Equal(result, true)
 }
+
+func Test_environment_name_exact_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Two JSON objects with matching environment_name values
+	requested := map[string]string{
+		"environment_name": "production",
+	}
+
+	granted := map[string]string{
+		"environment_name": "production",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: The objects should match
+	is.Equal(result, true)
+}
+
+func Test_environment_name_wildcard_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Requested object with environment_name field and granted object with "*" wildcard
+	requested := map[string]string{
+		"environment_name": "production",
+	}
+
+	granted := map[string]string{
+		"environment_name": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: The environment_name field should match via wildcard
+	is.Equal(result, true)
+}
+
+func Test_environment_name_no_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Two JSON objects with different environment_name values
+	requested := map[string]string{
+		"environment_name": "production",
+	}
+
+	granted := map[string]string{
+		"environment_name": "staging",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: The objects should not match
+	is.Equal(result, false)
+}
+
+func Test_environment_name_wildcard_but_empty_requested(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Granted object with wildcard but requested has empty environment_name
+	requested := map[string]string{
+		"environment_name": "",
+	}
+
+	granted := map[string]string{
+		"environment_name": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires non-empty value
+	is.Equal(result, false)
+}
+
+func Test_environment_name_wildcard_but_missing_requested(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Granted object with wildcard but requested is missing environment_name
+	requested := map[string]string{}
+
+	granted := map[string]string{
+		"environment_name": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires non-empty value
+	is.Equal(result, false)
+}
+
+func Test_environment_stage_exact_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Two JSON objects with matching environment_stage values
+	requested := map[string]string{
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"environment_stage": "stable",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: The objects should match
+	is.Equal(result, true)
+}
+
+func Test_environment_stage_wildcard_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Requested object with environment_stage field and granted object with "*" wildcard
+	requested := map[string]string{
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"environment_stage": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: The environment_stage field should match via wildcard
+	is.Equal(result, true)
+}
+
+func Test_environment_stage_no_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Two JSON objects with different environment_stage values
+	requested := map[string]string{
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"environment_stage": "beta",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: The objects should not match
+	is.Equal(result, false)
+}
+
+func Test_environment_stage_wildcard_but_empty_requested(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Granted object with wildcard but requested has empty environment_stage
+	requested := map[string]string{
+		"environment_stage": "",
+	}
+
+	granted := map[string]string{
+		"environment_stage": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires non-empty value
+	is.Equal(result, false)
+}
+
+func Test_environment_stage_wildcard_but_missing_requested(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Granted object with wildcard but requested is missing environment_stage
+	requested := map[string]string{}
+
+	granted := map[string]string{
+		"environment_stage": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires non-empty value
+	is.Equal(result, false)
+}
+
+func Test_environment_fields_together(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Both environment fields match exactly
+	requested := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Both fields should match
+	is.Equal(result, true)
+}
+
+func Test_environment_fields_mixed_wildcards(t *testing.T) {
+	is := is.New(t)
+
+	// Given: One environment field matches via wildcard, other exactly
+	requested := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"environment_name":  "*",
+		"environment_stage": "stable",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Both fields should match (name via wildcard, stage exactly)
+	is.Equal(result, true)
+}
+
+func Test_environment_fields_mismatch(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Environment name matches but stage doesn't
+	requested := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "beta",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because stage doesn't match
+	is.Equal(result, false)
+}
+
+func Test_environment_fields_with_other_mismatches(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Environment fields match but other fields don't
+	requested := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+		"target":            "cmd",
+	}
+
+	granted := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+		"target":            "web",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because target doesn't match
+	is.Equal(result, false)
+}
+
+func Test_exact_equality_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Two identical objects
+	requested := map[string]string{
+		"container_name":    "image",
+		"target":            "cmd",
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"container_name":    "image",
+		"target":            "cmd",
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match exactly (early return path)
+	is.Equal(result, true)
+}
+
+func Test_exact_equality_no_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Two different objects
+	requested := map[string]string{
+		"container_name":    "image",
+		"target":            "cmd",
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"container_name":    "video",
+		"target":            "web",
+		"environment_name":  "staging",
+		"environment_stage": "beta",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match (different objects)
+	is.Equal(result, false)
+}
+
+func Test_wildcard_with_empty_string_values(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Various empty string scenarios with wildcards
+	requested := map[string]string{
+		"container_name":    "",
+		"target":            "cmd",
+		"environment_name":  "production",
+		"environment_stage": "",
+	}
+
+	granted := map[string]string{
+		"container_name":    "*",
+		"target":            "cmd",
+		"environment_name":  "*",
+		"environment_stage": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because container_name and environment_stage are empty strings
+	// but wildcards require non-empty values
+	is.Equal(result, false)
+}
+
+func Test_missing_fields_in_requested(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Requested object missing some fields that granted specifies
+	requested := map[string]string{
+		"target": "cmd",
+		// missing container_name, environment_name, environment_stage
+	}
+
+	granted := map[string]string{
+		"container_name":    "image",
+		"target":            "cmd",
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because requested is missing required fields
+	is.Equal(result, false)
+}
+
+func Test_granted_missing_fields(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Granted object missing fields (only subset matching)
+	requested := map[string]string{
+		"container_name":    "image",
+		"target":            "cmd",
+		"environment_name":  "production",
+		"environment_stage": "stable",
+	}
+
+	granted := map[string]string{
+		"target": "cmd",
+		// only specifying target, other fields not restricted
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match because only specified fields need to match
+	is.Equal(result, true)
+}
+
+func Test_complex_mixed_scenario(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Complex scenario with multiple field types
+	requested := map[string]string{
+		"container_name":        "image",
+		"target":                "cmd",
+		"host":                  "localhost",
+		"schema":                "docker",
+		"action":                "read",
+		"source_organization":   "myorg",
+		"source_repository":     "myrepo",
+		"umbrella_organization": "parentorg",
+		"umbrella_repository":   "parentrepo",
+		"environment_name":      "production",
+		"environment_stage":     "stable",
+	}
+
+	granted := map[string]string{
+		"container_name":        "*",
+		"target":                "cmd",
+		"host":                  "localhost",
+		"schema":                "docker",
+		"action":                "*",
+		"source_organization":   "myorg",
+		"source_repository":     "*",
+		"umbrella_organization": "parentorg",
+		"umbrella_repository":   "parentrepo",
+		"environment_name":      "production",
+		"environment_stage":     "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match with mixed wildcard and exact matching
+	is.Equal(result, true)
+}
+
+func Test_empty_maps(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Empty maps
+	requested := map[string]string{}
+	granted := map[string]string{}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match because empty maps are equal
+	is.Equal(result, true)
+}
+
+func Test_empty_requested_with_granted_fields(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Empty requested but granted has fields
+	requested := map[string]string{}
+	granted := map[string]string{
+		"container_name": "image",
+		"target":         "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because requested doesn't have required fields
+	is.Equal(result, false)
+}
+
+func Test_single_field_container_name_wildcard_non_empty(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Single field with wildcard and non-empty value
+	requested := map[string]string{
+		"container_name": "image",
+	}
+
+	granted := map[string]string{
+		"container_name": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match because wildcard accepts non-empty value
+	is.Equal(result, true)
+}
+
+func Test_single_field_target_wildcard_non_empty(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Single field with wildcard and non-empty value
+	requested := map[string]string{
+		"target": "cmd",
+	}
+
+	granted := map[string]string{
+		"target": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match because wildcard accepts non-empty value
+	is.Equal(result, true)
+}
+
+func Test_wildcard_requires_non_empty_but_empty_provided(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but empty string in requested
+	requested := map[string]string{
+		"container_name": "",
+		"target":         "cmd",
+	}
+
+	granted := map[string]string{
+		"container_name": "*",
+		"target":         "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires non-empty value
+	is.Equal(result, false)
+}
+
+func Test_exact_match_with_empty_string(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Exact match with empty strings
+	requested := map[string]string{
+		"container_name": "",
+		"target":         "cmd",
+	}
+
+	granted := map[string]string{
+		"container_name": "",
+		"target":         "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match because empty strings match exactly
+	is.Equal(result, true)
+}
+
+func Test_wildcard_vs_exact_mismatch(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but different non-empty value in requested
+	requested := map[string]string{
+		"container_name": "different_image",
+		"target":         "cmd",
+	}
+
+	granted := map[string]string{
+		"container_name": "*",
+		"target":         "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match because wildcard accepts any non-empty value
+	is.Equal(result, true)
+}
+
+func Test_wildcard_missing_field_container_name(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"target": "cmd",
+		// container_name is missing
+	}
+
+	granted := map[string]string{
+		"container_name": "*",
+		"target":         "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_target(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// target is missing
+	}
+
+	granted := map[string]string{
+		"container_name": "image",
+		"target":         "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_host(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// host is missing
+	}
+
+	granted := map[string]string{
+		"container_name": "image",
+		"host":           "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_schema(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// schema is missing
+	}
+
+	granted := map[string]string{
+		"container_name": "image",
+		"schema":         "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_action(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// action is missing
+	}
+
+	granted := map[string]string{
+		"container_name": "image",
+		"action":         "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_source_organization(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// source_organization is missing
+	}
+
+	granted := map[string]string{
+		"container_name":      "image",
+		"source_organization": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_source_repository(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// source_repository is missing
+	}
+
+	granted := map[string]string{
+		"container_name":    "image",
+		"source_repository": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_umbrella_organization(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// umbrella_organization is missing
+	}
+
+	granted := map[string]string{
+		"container_name":        "image",
+		"umbrella_organization": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_umbrella_repository(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// umbrella_repository is missing
+	}
+
+	granted := map[string]string{
+		"container_name":      "image",
+		"umbrella_repository": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_environment_name(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// environment_name is missing
+	}
+
+	granted := map[string]string{
+		"container_name":   "image",
+		"environment_name": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
+
+func Test_wildcard_missing_field_environment_stage(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Wildcard in granted but field missing in requested
+	requested := map[string]string{
+		"container_name": "image",
+		// environment_stage is missing
+	}
+
+	granted := map[string]string{
+		"container_name":    "image",
+		"environment_stage": "*",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should not match because wildcard requires the field to exist and be non-empty
+	is.Equal(result, false)
+}
