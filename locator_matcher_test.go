@@ -65,6 +65,50 @@ func Test_LocatorMatcher_no_match(t *testing.T) {
 		"container_name":        "image/container",
 	}
 
+	// When: LocatorMatcher compares the locator with granted object
+	result := LocatorMatcher(locator, granted)
+
+	// Then: The objects should not match
+	is.Equal(result, false)
+}
+
+func Test_LocatorMatcher_no_match_environment_mismatch(t *testing.T) {
+	is := is.New(t)
+
+	// Given: A locator string and a granted object that should not match due to environment_name mismatch
+	locator := "locator://confetti-sites-confetti-cms_local_vendor-confetti-cms-monitor_8609-development-cmd?environment_name=local&environment_stage=development&target=cmd&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms&container_name=image/container"
+
+	granted := map[string]string{
+		"environment_name":      "production", // Different from locator's "local"
+		"environment_stage":     "development",
+		"target":                "cmd",
+		"umbrella_organization": "confetti-sites",
+		"umbrella_repository":   "confetti-cms",
+		"container_name":        "image/container",
+	}
+
+	// When: LocatorMatcher compares the locator with granted object
+	result := LocatorMatcher(locator, granted)
+
+	// Then: The objects should not match due to environment_name mismatch
+	is.Equal(result, false)
+}
+
+func Test_LocatorMatcher_debug_parsing(t *testing.T) {
+	is := is.New(t)
+
+	// Given: A locator string for debugging parsing behavior
+	locator := "locator://confetti-sites-confetti-cms_local_vendor-confetti-cms-monitor_8609-development-cmd?environment_name=local&environment_stage=development&target=cmd&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms&container_name=image/container"
+
+	granted := map[string]string{
+		"environment_name":      "production",
+		"environment_stage":     "development",
+		"target":                "cmd",
+		"umbrella_organization": "confetti-sites",
+		"umbrella_repository":   "confetti-cms",
+		"container_name":        "image/container",
+	}
+
 	// Debug: Check what the locator parses to and test SyncMatcher directly
 	parsedLocator := ParseLocator(locator)
 	t.Logf("Parsed locator: %+v", parsedLocator)
@@ -153,6 +197,59 @@ func Test_LocatorMatcher_query_parameters_override(t *testing.T) {
 	result := LocatorMatcher(locator, granted)
 
 	// Then: Should match using query parameter values (which override path parsing)
+	is.Equal(result, true)
+}
+
+func Test_LocatorMatcher_query_parameters_override_organization(t *testing.T) {
+	is := is.New(t)
+
+	// Given: A locator where query parameters override path parsing for organization fields
+	locator := "locator://different-org-different-repo_env-stage-target?umbrella_organization=confetti-sites&umbrella_repository=confetti-cms"
+
+	granted := map[string]string{
+		"umbrella_organization": "confetti-sites",
+		"umbrella_repository":   "confetti-cms",
+	}
+
+	// When: LocatorMatcher compares the locator with granted object
+	result := LocatorMatcher(locator, granted)
+
+	// Then: Should match using query parameter values for organization fields
+	is.Equal(result, true)
+}
+
+func Test_LocatorMatcher_query_parameters_override_environment(t *testing.T) {
+	is := is.New(t)
+
+	// Given: A locator where query parameters override path parsing for environment fields
+	locator := "locator://different-org-different-repo_env-stage-target?environment_name=local&environment_stage=development"
+
+	granted := map[string]string{
+		"environment_name":  "local",
+		"environment_stage": "development",
+	}
+
+	// When: LocatorMatcher compares the locator with granted object
+	result := LocatorMatcher(locator, granted)
+
+	// Then: Should match using query parameter values for environment fields
+	is.Equal(result, true)
+}
+
+func Test_LocatorMatcher_query_parameters_override_target(t *testing.T) {
+	is := is.New(t)
+
+	// Given: A locator where query parameters override path parsing for target field
+	locator := "locator://different-org-different-repo_env-stage-target?target=cmd"
+
+	granted := map[string]string{
+		"target": "cmd",
+	}
+
+	// When: LocatorMatcher compares the locator with granted object
+	result := LocatorMatcher(locator, granted)
+
+	// Then: Should match using query parameter value for target field
 	is.Equal(result, true)
 }
 

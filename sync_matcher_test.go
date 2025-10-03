@@ -288,6 +288,29 @@ func Test_all_three_fields_match(t *testing.T) {
 	is.Equal(result, true)
 }
 
+func Test_host_container_target_combined_match(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Testing combination of host, container_name, and target fields
+	requested := map[string]string{
+		"host":           "localhost",
+		"container_name": "image",
+		"target":         "cmd",
+	}
+
+	granted := map[string]string{
+		"host":           "localhost",
+		"container_name": "image",
+		"target":         "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: All three fields should match together
+	is.Equal(result, true)
+}
+
 func Test_host_wildcard_with_other_fields(t *testing.T) {
 	is := is.New(t)
 
@@ -1315,6 +1338,98 @@ func Test_complex_mixed_scenario(t *testing.T) {
 	result := SyncMatcher(requested, granted)
 
 	// Then: Should match with mixed wildcard and exact matching
+	is.Equal(result, true)
+}
+
+func Test_mixed_scenario_wildcard_container_name(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Testing wildcard container_name with other exact matches
+	requested := map[string]string{
+		"container_name": "image",
+		"target":         "cmd",
+		"host":           "localhost",
+	}
+
+	granted := map[string]string{
+		"container_name": "*",
+		"target":         "cmd",
+		"host":           "localhost",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match with wildcard container_name and exact other fields
+	is.Equal(result, true)
+}
+
+func Test_mixed_scenario_wildcard_action(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Testing wildcard action with other exact matches
+	requested := map[string]string{
+		"action": "read",
+		"schema": "docker",
+		"host":   "localhost",
+	}
+
+	granted := map[string]string{
+		"action": "*",
+		"schema": "docker",
+		"host":   "localhost",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match with wildcard action and exact other fields
+	is.Equal(result, true)
+}
+
+func Test_mixed_scenario_wildcard_source_repository(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Testing wildcard source_repository with other exact matches
+	requested := map[string]string{
+		"source_organization":   "myorg",
+		"source_repository":     "myrepo",
+		"umbrella_organization": "parentorg",
+	}
+
+	granted := map[string]string{
+		"source_organization":   "myorg",
+		"source_repository":     "*",
+		"umbrella_organization": "parentorg",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match with wildcard source_repository and exact other fields
+	is.Equal(result, true)
+}
+
+func Test_mixed_scenario_wildcard_environment_stage(t *testing.T) {
+	is := is.New(t)
+
+	// Given: Testing wildcard environment_stage with other exact matches
+	requested := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "stable",
+		"target":            "cmd",
+	}
+
+	granted := map[string]string{
+		"environment_name":  "production",
+		"environment_stage": "*",
+		"target":            "cmd",
+	}
+
+	// When: SyncMatcher compares the objects
+	result := SyncMatcher(requested, granted)
+
+	// Then: Should match with wildcard environment_stage and exact other fields
 	is.Equal(result, true)
 }
 
