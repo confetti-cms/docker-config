@@ -1,6 +1,10 @@
 package dockerconfig
 
-import "reflect"
+import (
+	"net/url"
+	"reflect"
+	"strings"
+)
 
 // SyncMatcher compares a requested object with a granted object and returns true if they match
 // Supports wildcard "*" matching for string values in the granted object
@@ -151,6 +155,36 @@ func SyncMatcher(requested, granted map[string]string) bool {
 		}
 	}
 
+	// Check environment_name matching
+	if grantedEnvName, exists := granted["environment_name"]; exists {
+		if grantedEnvName == "*" {
+			// Wildcard matches any non-empty environment_name
+			if requestedEnvName, exists := requested["environment_name"]; !exists || requestedEnvName == "" {
+				return false
+			}
+		} else {
+			// Exact match required
+			if requestedEnvName, exists := requested["environment_name"]; !exists || requestedEnvName != grantedEnvName {
+				return false
+			}
+		}
+	}
+
+	// Check environment_stage matching
+	if grantedEnvStage, exists := granted["environment_stage"]; exists {
+		if grantedEnvStage == "*" {
+			// Wildcard matches any non-empty environment_stage
+			if requestedEnvStage, exists := requested["environment_stage"]; !exists || requestedEnvStage == "" {
+				return false
+			}
+		} else {
+			// Exact match required
+			if requestedEnvStage, exists := requested["environment_stage"]; !exists || requestedEnvStage != grantedEnvStage {
+				return false
+			}
+		}
+	}
+
 	// All specified fields match
 	return true
 }
@@ -178,4 +212,92 @@ func FilterMatchingRequests(requested []map[string]string, granted []map[string]
 	}
 
 	return matched
+}
+
+// ParseLocator parses a locator URL string into a map[string]string
+// The locator format is: locator://path?query_parameters
+// Parameters:
+//   - locator: The locator string to parse
+//
+// Returns:
+//   - map[string]string containing the parsed fields
+func ParseLocator(locator string) map[string]string {
+	result := make(map[string]string)
+
+	// Parse the locator URL
+	if !strings.HasPrefix(locator, "locator://") {
+		return result
+	}
+
+	// Remove the scheme
+	urlPart := strings.TrimPrefix(locator, "locator://")
+
+	// Split into path and query parts
+	parts := strings.SplitN(urlPart, "?", 2)
+	path := parts[0]
+
+	// Parse the path part first
+	// Format: org-repo_env-stage-target (simplified parsing)
+	pathParts := strings.Split(path, "_")
+
+	// Basic path parsing
+	if len(pathParts) >= 1 {
+		// First part contains org-repo information
+		orgRepo := pathParts[0]
+		if orgRepoParts := strings.Split(orgRepo, "-"); len(orgRepoParts) >= 2 {
+			result["umbrella_organization"] = orgRepoParts[0]
+			result["umbrella_repository"] = orgRepoParts[1]
+		}
+	}
+
+	if len(pathParts) >= 2 {
+		// Second part contains environment information
+		env := pathParts[1]
+		if envParts := strings.Split(env, "-"); len(envParts) >= 1 {
+			result["environment_name"] = envParts[0]
+			if len(envParts) >= 2 {
+				result["environment_stage"] = strings.Join(envParts[1:], "-")
+			}
+		}
+	}
+
+	if len(pathParts) >= 3 {
+		// Third part contains target information
+		target := pathParts[2]
+		if targetParts := strings.Split(target, "-"); len(targetParts) >= 1 {
+			result["target"] = targetParts[len(targetParts)-1]
+		}
+	}
+
+	// Parse query parameters if present (these override path parsing)
+	if len(parts) > 1 {
+		query := parts[1]
+		values, err := url.ParseQuery(query)
+		if err == nil {
+			// Add query parameters to result (overriding path parsing)
+			for key, vals := range values {
+				if len(vals) > 0 {
+					result[key] = vals[0]
+				}
+			}
+		}
+	}
+
+	return result
+}
+
+// LocatorMatcher compares a locator string with a granted object and returns true if they match
+// The locator is parsed into fields and then compared using the existing SyncMatcher logic
+// Parameters:
+//   - locator: The locator string to parse and match
+//   - granted: The object containing the granted permissions/values (may contain "*" wildcards)
+//
+// Returns:
+//   - true if the parsed locator matches the granted object
+func LocatorMatcher(locator string, granted map[string]string) bool {
+	// Parse the locator into fields
+	parsedLocator := ParseLocator(locator)
+
+	// Use existing SyncMatcher to compare parsed locator with granted object
+	return SyncMatcher(parsedLocator, granted)
 }
