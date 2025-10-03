@@ -6,25 +6,6 @@ import (
 	"github.com/matryer/is"
 )
 
-// func Test_container_name_exact_match(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: Two JSON objects with matching container_name values
-// 	requested := map[string]string{
-// 		"container_name": "image",
-// 	}
-
-// 	granted := map[string]string{
-// 		"container_name": "image",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: The objects should match
-// 	is.Equal(result, true)
-// }
-
 func Test_container_name_no_match(t *testing.T) {
 	is := is.New(t)
 
@@ -64,25 +45,6 @@ func Test_container_name_wildcard_match(t *testing.T) {
 	// Then: Both fields should match (container_name via wildcard, target exactly)
 	is.Equal(result, true)
 }
-
-// func Test_target_exact_match(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: Two JSON objects with matching target values
-// 	requested := map[string]string{
-// 		"target": "cmd",
-// 	}
-
-// 	granted := map[string]string{
-// 		"target": "cmd",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: The objects should match
-// 	is.Equal(result, true)
-// }
 
 func Test_target_no_match(t *testing.T) {
 	is := is.New(t)
@@ -873,41 +835,6 @@ func Test_umbrella_repository_matches_but_umbrella_org_mismatch(t *testing.T) {
 	is.Equal(result, false)
 }
 
-// func Test_all_nine_fields_match(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: All nine fields match exactly
-// 	requested := map[string]string{
-// 		"schema":                "image",
-// 		"host":                  "localhost",
-// 		"container_name":        "image",
-// 		"target":                "cmd",
-// 		"action":                "read",
-// 		"source_organization":   "myorg",
-// 		"source_repository":     "myrepo",
-// 		"umbrella_organization": "parentorg",
-// 		"umbrella_repository":   "parentrepo",
-// 	}
-
-// 	granted := map[string]string{
-// 		"schema":                "image",
-// 		"host":                  "localhost",
-// 		"container_name":        "image",
-// 		"target":                "cmd",
-// 		"action":                "read",
-// 		"source_organization":   "myorg",
-// 		"source_repository":     "myrepo",
-// 		"umbrella_organization": "parentorg",
-// 		"umbrella_repository":   "parentrepo",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: All fields should match
-// 	is.Equal(result, true)
-// }
-
 func Test_environment_name_exact_match(t *testing.T) {
 	is := is.New(t)
 
@@ -1230,55 +1157,6 @@ func Test_exact_equality_no_match(t *testing.T) {
 	is.Equal(result, false)
 }
 
-// func Test_wildcard_with_empty_string_values(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: Various empty string scenarios with wildcards
-// 	requested := map[string]string{
-// 		"container_name":    "",
-// 		"target":            "cmd",
-// 		"environment_name":  "production",
-// 		"environment_stage": "",
-// 	}
-
-// 	granted := map[string]string{
-// 		"container_name":    "*",
-// 		"target":            "cmd",
-// 		"environment_name":  "*",
-// 		"environment_stage": "*",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: Should not match because container_name and environment_stage are empty strings
-// 	// but wildcards require non-empty values
-// 	is.Equal(result, false)
-// }
-
-// func Test_missing_fields_in_requested(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: Requested object missing some fields that granted specifies
-// 	requested := map[string]string{
-// 		"target": "cmd",
-// 		// missing container_name, environment_name, environment_stage
-// 	}
-
-// 	granted := map[string]string{
-// 		"container_name":    "image",
-// 		"target":            "cmd",
-// 		"environment_name":  "production",
-// 		"environment_stage": "stable",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: Should not match because requested is missing required fields
-// 	is.Equal(result, false)
-// }
-
 func Test_granted_missing_fields(t *testing.T) {
 	is := is.New(t)
 
@@ -1301,68 +1179,6 @@ func Test_granted_missing_fields(t *testing.T) {
 	// Then: Should match because only specified fields need to match
 	is.Equal(result, true)
 }
-
-// func Test_complex_mixed_scenario(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: Complex scenario with multiple field types
-// 	requested := map[string]string{
-// 		"container_name":        "image",
-// 		"target":                "cmd",
-// 		"host":                  "localhost",
-// 		"schema":                "docker",
-// 		"action":                "read",
-// 		"source_organization":   "myorg",
-// 		"source_repository":     "myrepo",
-// 		"umbrella_organization": "parentorg",
-// 		"umbrella_repository":   "parentrepo",
-// 		"environment_name":      "production",
-// 		"environment_stage":     "stable",
-// 	}
-
-// 	granted := map[string]string{
-// 		"container_name":        "*",
-// 		"target":                "cmd",
-// 		"host":                  "localhost",
-// 		"schema":                "docker",
-// 		"action":                "*",
-// 		"source_organization":   "myorg",
-// 		"source_repository":     "*",
-// 		"umbrella_organization": "parentorg",
-// 		"umbrella_repository":   "parentrepo",
-// 		"environment_name":      "production",
-// 		"environment_stage":     "*",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: Should match with mixed wildcard and exact matching
-// 	is.Equal(result, true)
-// }
-
-// func Test_mixed_scenario_wildcard_container_name(t *testing.T) {
-// 	is := is.New(t)
-
-// 	// Given: Testing wildcard container_name with other exact matches
-// 	requested := map[string]string{
-// 		"container_name": "image",
-// 		"target":         "cmd",
-// 		"host":           "localhost",
-// 	}
-
-// 	granted := map[string]string{
-// 		"container_name": "*",
-// 		"target":         "cmd",
-// 		"host":           "localhost",
-// 	}
-
-// 	// When: SyncMatcher compares the objects
-// 	result := SyncMatcher(requested, granted)
-
-// 	// Then: Should match with wildcard container_name and exact other fields
-// 	is.Equal(result, true)
-// }
 
 func Test_mixed_scenario_wildcard_action(t *testing.T) {
 	is := is.New(t)
