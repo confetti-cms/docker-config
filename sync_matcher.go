@@ -189,23 +189,37 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	return true
 }
 
-// filterMatchingRequests compares multiple requested objects against multiple granted objects
+// CanSync compares multiple requested objects against multiple granted objects
 // and returns all requested objects that match at least one granted object
 // Parameters:
+//   - requestedLocator: The locator string to parse and match
 //   - requested: Slice of objects containing the requested permissions/values
 //   - granted: Slice of objects containing the granted permissions/values (may contain "*" wildcards)
 //
 // Returns:
 //   - Slice of requested objects that match at least one granted object
-func filterMatchingRequests(requested []map[string]string, granted []map[string]string) []map[string]string {
+func CanSync(locator string, requested []map[string]string, granted []map[string]string) []map[string]string {
+	// Parse the locator into fields
+	parsedLocator := ParseLocator(locator)
+
 	var matched []map[string]string
 
 	// For each requested object, check if it matches any granted object
 	for _, req := range requested {
 		for _, gran := range granted {
-			if SyncMatcher(req, gran) {
+			if SyncMatcher(parsedLocator, gran) {
+				// Merge parsedLocator fields into the requested object before returning
+				merged := make(map[string]string)
+				// Copy requested fields first
+				for k, v := range req {
+					merged[k] = v
+				}
+				// Add/override with parsedLocator fields
+				for k, v := range parsedLocator {
+					merged[k] = v
+				}
 				// Add to matched results and break to avoid duplicates
-				matched = append(matched, req)
+				matched = append(matched, merged)
 				break
 			}
 		}
@@ -282,6 +296,9 @@ func ParseLocator(locator string) map[string]string {
 			}
 		}
 	}
+
+	// Set internal_name to the full path (after query parsing so it doesn't get overridden)
+	result["internal_name"] = path
 
 	return result
 }

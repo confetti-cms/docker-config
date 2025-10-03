@@ -31,3 +31,16 @@ func Test_ParseLocator_empty_string(t *testing.T) {
 	// Then: Should return empty map
 	is.Equal(len(result), 0)
 }
+
+func Test_ParseLocator_internal_name(t *testing.T) {
+	is := is.New(t)
+
+	// Given: A locator string with internal_name field
+	locator := "locator://confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-cmd"
+
+	// When: ParseLocator parses the locator
+	result := ParseLocator(locator)
+
+	// Then: Internal name should be parsed correctly
+	is.Equal(result["internal_name"], "confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-cmd")
+}
