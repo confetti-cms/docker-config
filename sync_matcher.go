@@ -189,22 +189,6 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	return true
 }
 
-func getFullRequested(locator string, requested []map[string]string) []map[string]string {
-	// Parse the locator into fields
-	parsedLocator := ParseLocator(locator)
-
-	// Fill in missing fields from requested with parsed locator values
-	for i := range requested {
-		for key, value := range parsedLocator {
-			if _, exists := requested[i][key]; !exists {
-				requested[i][key] = value
-			}
-		}
-	}
-
-	return requested
-}
-
 // ParseLocator parses a locator URL string into a map[string]string
 // The locator format is: locator://path?query_parameters
 // Parameters:
