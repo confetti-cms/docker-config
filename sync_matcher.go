@@ -1,10 +1,58 @@
 package dockerconfig
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
 )
+
+// Locator represents a parsed locator string with all its components
+type Locator struct {
+	UmbrellaOrganization string `json:"umbrella_organization,omitempty"`
+	UmbrellaRepository   string `json:"umbrella_repository,omitempty"`
+	EnvironmentName      string `json:"environment_name,omitempty"`
+	EnvironmentStage     string `json:"environment_stage,omitempty"`
+	Target               string `json:"target,omitempty"`
+	ContainerName        string `json:"container_name,omitempty"`
+	InternalName         string `json:"internal_name,omitempty"`
+	// Additional fields that might be present in query parameters
+	AdditionalFields map[string]string `json:"-"`
+}
+
+// ToMap converts the Locator struct to a map[string]string for compatibility
+func (l *Locator) ToMap() map[string]string {
+	result := make(map[string]string)
+
+	if l.UmbrellaOrganization != "" {
+		result["umbrella_organization"] = l.UmbrellaOrganization
+	}
+	if l.UmbrellaRepository != "" {
+		result["umbrella_repository"] = l.UmbrellaRepository
+	}
+	if l.EnvironmentName != "" {
+		result["environment_name"] = l.EnvironmentName
+	}
+	if l.EnvironmentStage != "" {
+		result["environment_stage"] = l.EnvironmentStage
+	}
+	if l.Target != "" {
+		result["target"] = l.Target
+	}
+	if l.ContainerName != "" {
+		result["container_name"] = l.ContainerName
+	}
+	if l.InternalName != "" {
+		result["internal_name"] = l.InternalName
+	}
+
+	// Add additional fields
+	for key, value := range l.AdditionalFields {
+		result[key] = value
+	}
+
+	return result
+}
 
 // SyncMatcher compares a requested object with a granted object and returns true if they match
 // Supports wildcard "*" matching for string values in the granted object
@@ -37,17 +85,29 @@ func SyncMatcher(requested, granted map[string]string) bool {
 
 	// Check target matching
 	if grantedTarget, exists := granted["target"]; exists {
+		fmt.Printf("DEBUG SyncMatcher: target field exists in granted: %s\n", grantedTarget)
 		if grantedTarget == "*" {
 			// Wildcard matches any non-empty target
-			if requestedTarget, exists := requested["target"]; !exists || requestedTarget == "" {
+			if requestedTarget, exists := requested["target"]; exists {
+				fmt.Printf("DEBUG SyncMatcher: requested target: %s (exists: %v)\n", requestedTarget, exists)
+				if requestedTarget == "" {
+					fmt.Printf("DEBUG SyncMatcher: requested target is empty, returning false\n")
+					return false
+				}
+				fmt.Printf("DEBUG SyncMatcher: wildcard target match successful\n")
+			} else {
+				fmt.Printf("DEBUG SyncMatcher: requested target does not exist, returning false\n")
 				return false
 			}
 		} else {
 			// Exact match required
 			if requestedTarget, exists := requested["target"]; !exists || requestedTarget != grantedTarget {
+				fmt.Printf("DEBUG SyncMatcher: exact match failed for target\n")
 				return false
 			}
 		}
+	} else {
+		fmt.Printf("DEBUG SyncMatcher: target field does not exist in granted\n")
 	}
 
 	// Check host matching
@@ -189,15 +249,17 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	return true
 }
 
-// ParseLocator parses a locator URL string into a map[string]string
+// ParseLocator parses a locator URL string into a Locator struct
 // The locator format is: locator://path?query_parameters
 // Parameters:
 //   - locator: The locator string to parse
 //
 // Returns:
-//   - map[string]string containing the parsed fields
-func ParseLocator(locator string) map[string]string {
-	result := make(map[string]string)
+//   - Locator struct containing the parsed fields
+func ParseLocator(locator string) Locator {
+	result := Locator{
+		AdditionalFields: make(map[string]string),
+	}
 
 	// Parse the locator URL
 	if !strings.HasPrefix(locator, "locator://") {
@@ -220,8 +282,8 @@ func ParseLocator(locator string) map[string]string {
 		// First part contains org-repo information
 		orgRepo := pathParts[0]
 		if orgRepoParts := strings.Split(orgRepo, "-"); len(orgRepoParts) >= 2 {
-			result["umbrella_organization"] = orgRepoParts[0]
-			result["umbrella_repository"] = orgRepoParts[1]
+			result.UmbrellaOrganization = orgRepoParts[0]
+			result.UmbrellaRepository = orgRepoParts[1]
 		}
 	}
 
@@ -229,9 +291,9 @@ func ParseLocator(locator string) map[string]string {
 		// Second part contains environment information
 		env := pathParts[1]
 		if envParts := strings.Split(env, "-"); len(envParts) >= 1 {
-			result["environment_name"] = envParts[0]
+			result.EnvironmentName = envParts[0]
 			if len(envParts) >= 2 {
-				result["environment_stage"] = strings.Join(envParts[1:], "-")
+				result.EnvironmentStage = strings.Join(envParts[1:], "-")
 			}
 		}
 	}
@@ -240,7 +302,7 @@ func ParseLocator(locator string) map[string]string {
 		// Third part contains target information
 		target := pathParts[2]
 		if targetParts := strings.Split(target, "-"); len(targetParts) >= 1 {
-			result["target"] = targetParts[len(targetParts)-1]
+			result.Target = targetParts[len(targetParts)-1]
 		}
 	}
 
@@ -252,14 +314,32 @@ func ParseLocator(locator string) map[string]string {
 			// Add query parameters to result (overriding path parsing)
 			for key, vals := range values {
 				if len(vals) > 0 {
-					result[key] = vals[0]
+					value := vals[0]
+					switch key {
+					case "umbrella_organization":
+						result.UmbrellaOrganization = value
+					case "umbrella_repository":
+						result.UmbrellaRepository = value
+					case "environment_name":
+						result.EnvironmentName = value
+					case "environment_stage":
+						result.EnvironmentStage = value
+					case "target":
+						result.Target = value
+					case "container_name":
+						result.ContainerName = value
+					case "internal_name":
+						result.InternalName = value
+					default:
+						result.AdditionalFields[key] = value
+					}
 				}
 			}
 		}
 	}
 
 	// Set internal_name to the full path (after query parsing so it doesn't get overridden)
-	result["internal_name"] = path
+	result.InternalName = path
 
 	return result
 }
@@ -276,6 +356,9 @@ func LocatorMatcher(locator string, granted map[string]string) bool {
 	// Parse the locator into fields
 	parsedLocator := ParseLocator(locator)
 
+	// Convert to map for compatibility with existing SyncMatcher
+	parsedLocatorMap := parsedLocator.ToMap()
+
 	// Use existing SyncMatcher to compare parsed locator with granted object
-	return SyncMatcher(parsedLocator, granted)
+	return SyncMatcher(parsedLocatorMap, granted)
 }

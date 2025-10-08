@@ -38,29 +38,12 @@ func TestRepository_GetGranted_with_db_manager_and_wildcard_target(t *testing.T)
 	// Given
 	is, dbManager := setupTestDB(t)
 
-	// Seed the database with the provided granted permission
-	granted := Granted{
-		Description:          "Expose the timeline data to the monitor container",
-		ExposePath:           "/var/timeline",
-		Scheme:               "hive",
-		Action:               "read",
-		SourceOrganization:   "confetti-cms",
-		SourceRepository:     "monitor",
-		UmbrellaOrganization: "confetti-cms",
-		UmbrellaRepository:   "*",
-		ContainerName:        "*",
-		Target:               "*",
-	}
+	err := dbManager.SaveGranted(makeGranted("http", "read", "org", "repo", "umbrella_org", "umbrella_repo", "container", "*"))
+	is.NoErr(err)
 
-	err := dbManager.SaveGranted(granted)
-	if err != nil {
-		t.Fatalf("Failed to save granted permission: %v", err)
-	}
-
-	// Create a request with target "*"
 	requested := []Requested{
 		{
-			Target: "*",
+			Target: "target",
 		},
 	}
 
