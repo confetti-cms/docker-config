@@ -20,7 +20,7 @@ result := SyncMatcher(requested, granted)
 ## Type Signature
 
 ```go
-func SyncMatcher(requested, granted map[string]string) bool
+func SyncMatcher(requested map[string]string, granted Granted) bool
 ```
 
 ## Parameters

@@ -12,8 +12,8 @@ func Test_LocatorMatcher_query_parameters_override_target(t *testing.T) {
 	// Given: A locator where query parameters override path parsing for target field
 	locator := "locator://different-org-different-repo_env-stage-target?target=cmd"
 
-	granted := map[string]string{
-		"target": "cmd",
+	granted := Granted{
+		Target: "cmd",
 	}
 
 	// When: LocatorMatcher compares the locator with granted object

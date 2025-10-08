@@ -14,8 +14,8 @@ func Test_container_name_no_match(t *testing.T) {
 		"container_name": "image",
 	}
 
-	granted := map[string]string{
-		"container_name": "video",
+	granted := Granted{
+		ContainerName: "video",
 	}
 
 	// When: SyncMatcher compares the objects

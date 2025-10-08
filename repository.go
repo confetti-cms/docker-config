@@ -54,6 +54,14 @@ func (dm *DbManager) initDB() error {
 		umbrella_repository TEXT,
 		container_name TEXT,
 		target TEXT
+		grand_scheme TEXT,
+		grand_action TEXT,
+		grand_source_organization TEXT,
+		grand_source_repository TEXT,
+		grand_umbrella_organization TEXT,
+		grand_umbrella_repository TEXT,
+		grand_container_name TEXT,
+		grand_target TEXT
 	);`
 
 	_, err := dm.db.Exec(query)

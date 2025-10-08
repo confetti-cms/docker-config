@@ -59,9 +59,12 @@ func (l *Locator) ToMap() map[string]string {
 // Parameters:
 //   - requested: The object containing the requested permissions/values
 //   - granted: The object containing the granted permissions/values (may contain "*" wildcards)
-func SyncMatcher(requested, granted map[string]string) bool {
+func SyncMatcher(requested map[string]string, granted Granted) bool {
+	// Convert granted to map for comparison
+	grantedMap := grantedToMap(granted)
+
 	// If objects are exactly equal, return true
-	if reflect.DeepEqual(requested, granted) {
+	if reflect.DeepEqual(requested, grantedMap) {
 		return true
 	}
 
@@ -69,7 +72,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	// Only fields present in the granted object need to match
 
 	// Check container_name matching
-	if grantedContainerName, exists := granted["container_name"]; exists {
+	if grantedContainerName, exists := grantedMap["container_name"]; exists {
 		if grantedContainerName == "*" {
 			// Wildcard matches any non-empty container_name
 			if requestedContainerName, exists := requested["container_name"]; !exists || requestedContainerName == "" {
@@ -84,7 +87,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check target matching
-	if grantedTarget, exists := granted["target"]; exists {
+	if grantedTarget, exists := grantedMap["target"]; exists {
 		fmt.Printf("DEBUG SyncMatcher: target field exists in granted: %s\n", grantedTarget)
 		if grantedTarget == "*" {
 			// Wildcard matches any non-empty target
@@ -111,7 +114,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check host matching
-	if grantedHost, exists := granted["host"]; exists {
+	if grantedHost, exists := grantedMap["host"]; exists {
 		if grantedHost == "*" {
 			// Wildcard matches any non-empty host
 			if requestedHost, exists := requested["host"]; !exists || requestedHost == "" {
@@ -126,7 +129,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check schema matching
-	if grantedSchema, exists := granted["schema"]; exists {
+	if grantedSchema, exists := grantedMap["schema"]; exists {
 		if grantedSchema == "*" {
 			// Wildcard matches any non-empty schema
 			if requestedSchema, exists := requested["schema"]; !exists || requestedSchema == "" {
@@ -141,7 +144,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check action matching
-	if grantedAction, exists := granted["action"]; exists {
+	if grantedAction, exists := grantedMap["action"]; exists {
 		if grantedAction == "*" {
 			// Wildcard matches any non-empty action
 			if requestedAction, exists := requested["action"]; !exists || requestedAction == "" {
@@ -156,7 +159,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check source_organization matching
-	if grantedSourceOrg, exists := granted["source_organization"]; exists {
+	if grantedSourceOrg, exists := grantedMap["source_organization"]; exists {
 		if grantedSourceOrg == "*" {
 			// Wildcard matches any non-empty source_organization
 			if requestedSourceOrg, exists := requested["source_organization"]; !exists || requestedSourceOrg == "" {
@@ -171,7 +174,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check source_repository matching
-	if grantedSourceRepo, exists := granted["source_repository"]; exists {
+	if grantedSourceRepo, exists := grantedMap["source_repository"]; exists {
 		if grantedSourceRepo == "*" {
 			// Wildcard matches any non-empty source_repository
 			if requestedSourceRepo, exists := requested["source_repository"]; !exists || requestedSourceRepo == "" {
@@ -186,7 +189,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check umbrella_organization matching
-	if grantedUmbrellaOrg, exists := granted["umbrella_organization"]; exists {
+	if grantedUmbrellaOrg, exists := grantedMap["umbrella_organization"]; exists {
 		if grantedUmbrellaOrg == "*" {
 			// Wildcard matches any non-empty umbrella_organization
 			if requestedUmbrellaOrg, exists := requested["umbrella_organization"]; !exists || requestedUmbrellaOrg == "" {
@@ -201,7 +204,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check umbrella_repository matching
-	if grantedUmbrellaRepo, exists := granted["umbrella_repository"]; exists {
+	if grantedUmbrellaRepo, exists := grantedMap["umbrella_repository"]; exists {
 		if grantedUmbrellaRepo == "*" {
 			// Wildcard matches any non-empty umbrella_repository
 			if requestedUmbrellaRepo, exists := requested["umbrella_repository"]; !exists || requestedUmbrellaRepo == "" {
@@ -216,7 +219,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check environment_name matching
-	if grantedEnvName, exists := granted["environment_name"]; exists {
+	if grantedEnvName, exists := grantedMap["environment_name"]; exists {
 		if grantedEnvName == "*" {
 			// Wildcard matches any non-empty environment_name
 			if requestedEnvName, exists := requested["environment_name"]; !exists || requestedEnvName == "" {
@@ -231,7 +234,7 @@ func SyncMatcher(requested, granted map[string]string) bool {
 	}
 
 	// Check environment_stage matching
-	if grantedEnvStage, exists := granted["environment_stage"]; exists {
+	if grantedEnvStage, exists := grantedMap["environment_stage"]; exists {
 		if grantedEnvStage == "*" {
 			// Wildcard matches any non-empty environment_stage
 			if requestedEnvStage, exists := requested["environment_stage"]; !exists || requestedEnvStage == "" {
@@ -352,11 +355,11 @@ func ParseLocator(locator string) Locator {
 //
 // Returns:
 //   - true if the parsed locator matches the granted object
-func LocatorMatcher(locator string, granted map[string]string) bool {
+func LocatorMatcher(locator string, granted Granted) bool {
 	// Parse the locator into fields
 	parsedLocator := ParseLocator(locator)
 
-	// Convert to map for compatibility with existing SyncMatcher
+	// Convert parsed locator to map for SyncMatcher
 	parsedLocatorMap := parsedLocator.ToMap()
 
 	// Use existing SyncMatcher to compare parsed locator with granted object
