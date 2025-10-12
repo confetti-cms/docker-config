@@ -88,6 +88,21 @@ func mockGranted(db *DbManager, granted Granted) []Granted {
 	return []Granted{granted}
 }
 
+func TestRepository_requested_scheme_match_grant_scheme_with_a_wildcard(t *testing.T) {
+	// Given
+	is, db := setupTestDB(t)
+
+	r := mockRequested(db, Requested{Scheme: "image", RequestScheme: "image"})
+	mockGranted(db, Granted{Scheme: "image", GrandScheme: "*"})
+
+	// When
+	result, err := db.FindGranted(r)
+
+	// Then
+	is.NoErr(err)
+	is.Equal(len(result), 1)
+}
+
 func mockRequested(db *DbManager, requested Requested) []Requested {
 	// Mock implementation to insert requested entry into the database
 	return []Requested{requested}
