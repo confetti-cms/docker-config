@@ -71,6 +71,36 @@ func TestRepository_scheme_matching(t *testing.T) {
 			granted:       Granted{Scheme: "image", GrandScheme: "image"},
 			expectedCount: 1,
 		},
+		{
+			name:          "exact action match",
+			requested:     Requested{Action: "image", RequestAction: "image"},
+			granted:       Granted{Action: "image", GrandAction: "image"},
+			expectedCount: 1,
+		},
+		{
+			name:          "requested action does not match grand action",
+			requested:     Requested{Action: "image", RequestAction: "image"},
+			granted:       Granted{Action: "image", GrandAction: "json"},
+			expectedCount: 0,
+		},
+		{
+			name:          "request action does not match granted action",
+			requested:     Requested{Action: "image", RequestAction: "image"},
+			granted:       Granted{Action: "json", GrandAction: "image"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand action",
+			requested:     Requested{Action: "image", RequestAction: "image"},
+			granted:       Granted{Action: "image", GrandAction: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request action",
+			requested:     Requested{Action: "image", RequestAction: "*"},
+			granted:       Granted{Action: "image", GrandAction: "image"},
+			expectedCount: 1,
+		},
 	}
 
 	for _, tt := range tests {
