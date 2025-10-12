@@ -388,21 +388,23 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 		return []Granted{}, nil
 	}
 
-	// Build query to find granted records where grand_scheme matches any of the requested.RequestScheme values
-	placeholders := make([]string, len(requested))
-	args := make([]interface{}, len(requested))
+	// Build query to find granted records where both scheme and grand_scheme match
+	// We need to handle multiple requested items, so we'll build conditions for each
+	var conditions []string
+	var args []interface{}
 
-	for i, req := range requested {
-		placeholders[i] = "?"
-		args[i] = req.RequestScheme
+	for _, req := range requested {
+		// Each requested item needs both scheme and grand_scheme to match
+		conditions = append(conditions, "(scheme = ? AND grand_scheme = ?)")
+		args = append(args, req.Scheme, req.RequestScheme)
 	}
 
 	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,
 		source_repository, umbrella_organization, umbrella_repository,
 		container_name, target, grand_scheme, grand_action, grand_source_organization,
 		grand_source_repository, grand_umbrella_organization, grand_umbrella_repository,
-		grand_container_name, grand_target FROM granted WHERE grand_scheme IN (%s)`,
-		strings.Join(placeholders, ","))
+		grand_container_name, grand_target FROM granted WHERE %s`,
+		strings.Join(conditions, " OR "))
 
 	rows, err := dm.db.Query(query, args...)
 	if err != nil {
