@@ -1,9 +1,10 @@
 package dockerconfig
 
 import (
-	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -204,7 +205,7 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 			req.RequestTarget,
 		)
 
-		locator := sha256.Sum256([]byte(data))
+		locator := hex.EncodeToString([]byte(data))
 
 		_, err := stmt.Exec(
 			locator,
@@ -262,7 +263,7 @@ func (dm *DbManager) SaveGranted(granted Granted) error {
 		granted.GrandTarget,
 	)
 
-	locator := sha256.Sum256([]byte(data))
+	locator := hex.EncodeToString([]byte(data))
 
 	query := `
 	INSERT INTO granted (
@@ -383,5 +384,60 @@ func (dm *DbManager) Close() error {
 
 // FindGranted finds granted permissions that match the requested permissions using database queries
 func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
-	return []Granted{}, nil
+	if len(requested) == 0 {
+		return []Granted{}, nil
+	}
+
+	// Build query to find granted records where grand_scheme matches any of the requested.RequestScheme values
+	placeholders := make([]string, len(requested))
+	args := make([]interface{}, len(requested))
+
+	for i, req := range requested {
+		placeholders[i] = "?"
+		args[i] = req.RequestScheme
+	}
+
+	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,
+		source_repository, umbrella_organization, umbrella_repository,
+		container_name, target, grand_scheme, grand_action, grand_source_organization,
+		grand_source_repository, grand_umbrella_organization, grand_umbrella_repository,
+		grand_container_name, grand_target FROM granted WHERE grand_scheme IN (%s)`,
+		strings.Join(placeholders, ","))
+
+	rows, err := dm.db.Query(query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query granted records: %w", err)
+	}
+	defer rows.Close()
+
+	var granted []Granted
+	for rows.Next() {
+		var g Granted
+		err := rows.Scan(
+			&g.Description,
+			&g.ExposePath,
+			&g.Scheme,
+			&g.Action,
+			&g.SourceOrganization,
+			&g.SourceRepository,
+			&g.UmbrellaOrganization,
+			&g.UmbrellaRepository,
+			&g.ContainerName,
+			&g.Target,
+			&g.GrandScheme,
+			&g.GrandAction,
+			&g.GrandSourceOrganization,
+			&g.GrandSourceRepository,
+			&g.GrandUmbrellaOrganization,
+			&g.GrandUmbrellaRepository,
+			&g.GrandContainerName,
+			&g.GrandTarget,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan granted record: %w", err)
+		}
+		granted = append(granted, g)
+	}
+
+	return granted, rows.Err()
 }
