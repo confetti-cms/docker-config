@@ -388,24 +388,39 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 		return []Granted{}, nil
 	}
 
-	// Build query to find granted records where both scheme and grand_scheme match
+	// Build query to find granted records where both scheme and action match
 	// We need to handle multiple requested items, so we'll build conditions for each
 	var conditions []string
 	var args []interface{}
 
 	for _, req := range requested {
-		// Each requested item needs both scheme and grand_scheme to match
-		// Handle wildcards in either RequestScheme or GrandScheme
+		// Each requested item needs both scheme and action to match
+		// Handle wildcards in either RequestScheme/GrandScheme and RequestAction/GrandAction
+
+		var schemeCondition string
 		if req.RequestScheme == "*" {
 			// If RequestScheme is "*", match any GrandScheme
-			conditions = append(conditions, "scheme = ?")
+			schemeCondition = "scheme = ?"
 			args = append(args, req.Scheme)
 		} else {
-			// Check if we need to look up GrandScheme from database to check for wildcard
-			// For now, assume we need exact match unless RequestScheme is "*"
-			conditions = append(conditions, "(scheme = ? AND (grand_scheme = ? OR grand_scheme = '*'))")
+			// Match when scheme equals the requested scheme AND (grand_scheme equals the request_scheme OR grand_scheme is "*")
+			schemeCondition = "(scheme = ? AND (grand_scheme = ? OR grand_scheme = '*'))"
 			args = append(args, req.Scheme, req.RequestScheme)
 		}
+
+		var actionCondition string
+		if req.RequestAction == "*" {
+			// If RequestAction is "*", match any GrandAction
+			actionCondition = "action = ?"
+			args = append(args, req.Action)
+		} else {
+			// Match when action equals the requested action AND (grand_action equals the request_action OR grand_action is "*")
+			actionCondition = "(action = ? AND (grand_action = ? OR grand_action = '*'))"
+			args = append(args, req.Action, req.RequestAction)
+		}
+
+		// Combine scheme and action conditions with AND
+		conditions = append(conditions, fmt.Sprintf("(%s AND %s)", schemeCondition, actionCondition))
 	}
 
 	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,
