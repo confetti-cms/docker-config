@@ -3,7 +3,6 @@ package dockerconfig
 import (
 	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -11,182 +10,6 @@ import (
 
 type DbManager struct {
 	db *sql.DB
-}
-
-func NewDbManager() (*DbManager, error) {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
-	}
-
-	manager := &DbManager{db: db}
-	if err := manager.initDB(); err != nil {
-		return nil, err
-	}
-
-	return manager, nil
-}
-
-func (dm *DbManager) initDB() error {
-	query := `
-	CREATE TABLE IF NOT EXISTS granted (
-		locator_hash TEXT GENERATED ALWAYS AS (
-			make_locator_hash(
-				description,
-				expose_path,
-				scheme,
-				action,
-				source_organization,
-				source_repository,
-				umbrella_organization,
-				umbrella_repository,
-				container_name,
-				target
-			)
-		) STORED PRIMARY KEY,
-		description TEXT,
-		expose_path TEXT,
-		scheme TEXT,
-		action TEXT,
-		source_organization TEXT,
-		source_repository TEXT,
-		umbrella_organization TEXT,
-		umbrella_repository TEXT,
-		container_name TEXT,
-		target TEXT
-		grand_scheme TEXT,
-		grand_action TEXT,
-		grand_source_organization TEXT,
-		grand_source_repository TEXT,
-		grand_umbrella_organization TEXT,
-		grand_umbrella_repository TEXT,
-		grand_container_name TEXT,
-		grand_target TEXT
-	);`
-
-	_, err := dm.db.Exec(query)
-
-	dm.db.RegisterFunc("make_locator_hash", func(
-		description, exposePath, scheme, action,
-		sourceOrg, sourceRepo, umbrellaOrg, umbrellaRepo,
-		containerName, target any,
-	) (string, error) {
-		data := fmt.Sprint(
-			description, exposePath, scheme, action,
-			sourceOrg, sourceRepo, umbrellaOrg, umbrellaRepo,
-			containerName, target,
-		)
-		sum := sha256.Sum256([]byte(data))
-		return hex.EncodeToString(sum[:]), nil
-	}, true)
-
-	return err
-}
-
-func (dm *DbManager) SaveGranted(granted Granted) error {
-	query := `
-	INSERT INTO granted (
-		description,
-		expose_path,
-		scheme,
-		action,
-		source_organization,
-		source_repository,
-		umbrella_organization,
-		umbrella_repository,
-		container_name,
-		target,
-		grand_scheme,
-		grand_action,
-		grand_source_organization,
-		grand_source_repository,
-		grand_umbrella_organization,
-		grand_umbrella_repository,
-		grand_container_name,
-		grand_target
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	 ON CONFLICT(locator_hash) DO UPDATE SET
-	 		description=excluded.description,
-			expose_path=excluded.expose_path,
-			scheme=excluded.scheme,
-			action=excluded.action,
-			source_organization=excluded.source_organization,
-			source_repository=excluded.source_repository,
-			umbrella_organization=excluded.umbrella_organization,
-			umbrella_repository=excluded.umbrella_repository,
-			container_name=excluded.container_name,
-			target=excluded.target
-			grand_scheme=excluded.grand_scheme,
-			grand_action=excluded.grand_action,
-			grand_source_organization=excluded.grand_source_organization,
-			grand_source_repository=excluded.grand_source_repository,
-			grand_umbrella_organization=excluded.grand_umbrella_organization,
-			grand_umbrella_repository=excluded.grand_umbrella_repository,
-			grand_container_name=excluded.grand_container_name,
-			grand_target=excluded.grand_target;
-	`
-
-	_, err := dm.db.Exec(query,
-		granted.Description,
-		granted.ExposePath,
-		granted.Scheme,
-		granted.Action,
-		granted.SourceOrganization,
-		granted.SourceRepository,
-		granted.UmbrellaOrganization,
-		granted.UmbrellaRepository,
-		granted.ContainerName,
-		granted.Target,
-		granted.GrandScheme,
-		granted.GrandAction,
-		granted.GrandSourceOrganization,
-		granted.GrandSourceRepository,
-		granted.GrandUmbrellaOrganization,
-		granted.GrandUmbrellaRepository,
-		granted.GrandContainerName,
-		granted.GrandTarget,
-	)
-
-	return err
-}
-
-func (dm *DbManager) GetAllGranted() ([]Granted, error) {
-	query := `SELECT description, expose_path, scheme, action, source_organization,
-		source_repository, umbrella_organization, umbrella_repository,
-		container_name, target FROM granted`
-
-	rows, err := dm.db.Query(query)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var granted []Granted
-	for rows.Next() {
-		var g Granted
-		err := rows.Scan(
-			&g.Description,
-			&g.ExposePath,
-			&g.Scheme,
-			&g.Action,
-			&g.SourceOrganization,
-			&g.SourceRepository,
-			&g.UmbrellaOrganization,
-			&g.UmbrellaRepository,
-			&g.ContainerName,
-			&g.Target,
-		)
-		if err != nil {
-			return nil, err
-		}
-		granted = append(granted, g)
-	}
-
-	return granted, rows.Err()
-}
-
-func (dm *DbManager) Close() error {
-	return dm.db.Close()
 }
 
 type Requested struct {
@@ -231,191 +54,334 @@ type Granted struct {
 	GrandTarget               string `json:"grand_target,omitempty"`
 }
 
-// requestedToMap converts a Requested struct to a map[string]string for matching
-func requestedToMap(r Requested) map[string]string {
-	result := make(map[string]string)
-
-	if r.Description != "" {
-		result["description"] = r.Description
-	}
-	if r.DestinationPath != "" {
-		result["destination_path"] = r.DestinationPath
-	}
-	if r.Scheme != "" {
-		result["scheme"] = r.Scheme
-	}
-	if r.Action != "" {
-		result["action"] = r.Action
-	}
-	if r.SourceOrganization != "" {
-		result["source_organization"] = r.SourceOrganization
-	}
-	if r.SourceRepository != "" {
-		result["source_repository"] = r.SourceRepository
-	}
-	if r.UmbrellaOrganization != "" {
-		result["umbrella_organization"] = r.UmbrellaOrganization
-	}
-	if r.UmbrellaRepository != "" {
-		result["umbrella_repository"] = r.UmbrellaRepository
-	}
-	if r.ContainerName != "" {
-		result["container_name"] = r.ContainerName
-	}
-	if r.Target != "" {
-		result["target"] = r.Target
-	}
-	if r.RequestScheme != "" {
-		result["request_scheme"] = r.RequestScheme
-	}
-	if r.RequestAction != "" {
-		result["request_action"] = r.RequestAction
-	}
-	if r.RequestSourceOrg != "" {
-		result["request_source_organization"] = r.RequestSourceOrg
-	}
-	if r.RequestSourceRepo != "" {
-		result["request_source_repository"] = r.RequestSourceRepo
-	}
-	if r.RequestUmbrellaOrg != "" {
-		result["request_umbrella_organization"] = r.RequestUmbrellaOrg
-	}
-	if r.RequestUmbrellaRepo != "" {
-		result["request_umbrella_repository"] = r.RequestUmbrellaRepo
-	}
-	if r.RequestContainerName != "" {
-		result["request_container_name"] = r.RequestContainerName
-	}
-	if r.RequestTarget != "" {
-		result["request_target"] = r.RequestTarget
-	}
-
-	return result
-}
-
-// grantedToMap converts a Granted struct to a map[string]string for matching
-func grantedToMap(g Granted) map[string]string {
-	result := make(map[string]string)
-
-	if g.Description != "" {
-		result["description"] = g.Description
-	}
-	if g.ExposePath != "" {
-		result["expose_path"] = g.ExposePath
-	}
-	if g.Scheme != "" {
-		result["scheme"] = g.Scheme
-	}
-	if g.Action != "" {
-		result["action"] = g.Action
-	}
-	if g.SourceOrganization != "" {
-		result["source_organization"] = g.SourceOrganization
-	}
-	if g.SourceRepository != "" {
-		result["source_repository"] = g.SourceRepository
-	}
-	if g.UmbrellaOrganization != "" {
-		result["umbrella_organization"] = g.UmbrellaOrganization
-	}
-	if g.UmbrellaRepository != "" {
-		result["umbrella_repository"] = g.UmbrellaRepository
-	}
-	if g.ContainerName != "" {
-		result["container_name"] = g.ContainerName
-	}
-	if g.Target != "" {
-		result["target"] = g.Target
-	}
-	if g.GrandScheme != "" {
-		result["grand_scheme"] = g.GrandScheme
-	}
-	if g.GrandAction != "" {
-		result["grand_action"] = g.GrandAction
-	}
-	if g.GrandSourceOrganization != "" {
-		result["grand_source_organization"] = g.GrandSourceOrganization
-	}
-	if g.GrandSourceRepository != "" {
-		result["grand_source_repository"] = g.GrandSourceRepository
-	}
-	if g.GrandUmbrellaOrganization != "" {
-		result["grand_umbrella_organization"] = g.GrandUmbrellaOrganization
-	}
-	if g.GrandUmbrellaRepository != "" {
-		result["grand_umbrella_repository"] = g.GrandUmbrellaRepository
-	}
-	if g.GrandContainerName != "" {
-		result["grand_container_name"] = g.GrandContainerName
-	}
-	if g.GrandTarget != "" {
-		result["grand_target"] = g.GrandTarget
-	}
-
-	return result
-}
-
-func GetGranted(dbManager *DbManager, requested []Requested) []Granted {
-	granted, err := dbManager.GetAllGranted()
+func NewDbManager() (*DbManager, error) {
+	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		return []Granted{}
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
-	var matching []Granted
+	manager := &DbManager{db: db}
+	if err := manager.initDB(); err != nil {
+		return nil, err
+	}
 
-	// Convert requested permissions to maps
-	var requestedMaps []map[string]string
+	return manager, nil
+}
+
+func (dm *DbManager) initDB() error {
+	// Create the requested table
+	query := `
+	CREATE TABLE IF NOT EXISTS requested (
+		locator TEXT PRIMARY KEY,
+		description TEXT,
+		expose_path TEXT,
+		scheme TEXT,
+		action TEXT,
+		source_organization TEXT,
+		source_repository TEXT,
+		umbrella_organization TEXT,
+		umbrella_repository TEXT,
+		container_name TEXT,
+		target TEXT,
+		request_scheme TEXT,
+		request_action TEXT,
+		request_source_organization TEXT,
+		request_source_repository TEXT,
+		request_umbrella_organization TEXT,
+		request_umbrella_repository TEXT,
+		request_container_name TEXT,
+		request_target TEXT
+	);`
+
+	_, err := dm.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("failed to create requested table: %w", err)
+	}
+
+	// Create the granted table
+	query = `
+	CREATE TABLE IF NOT EXISTS granted (
+		locator TEXT PRIMARY KEY,
+		description TEXT,
+		expose_path TEXT,
+		scheme TEXT,
+		action TEXT,
+		source_organization TEXT,
+		source_repository TEXT,
+		umbrella_organization TEXT,
+		umbrella_repository TEXT,
+		container_name TEXT,
+		target TEXT,
+		grand_scheme TEXT,
+		grand_action TEXT,
+		grand_source_organization TEXT,
+		grand_source_repository TEXT,
+		grand_umbrella_organization TEXT,
+		grand_umbrella_repository TEXT,
+		grand_container_name TEXT,
+		grand_target TEXT
+	);`
+
+	_, err = dm.db.Exec(query)
+
+	return err
+}
+
+func (dm *DbManager) SaveRequested(requested []Requested) error {
+	tx, err := dm.db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(`
+	INSERT INTO requested (
+		locator,
+		description,
+		expose_path,
+		scheme,
+		action,
+		source_organization,
+		source_repository,
+		umbrella_organization,
+		umbrella_repository,
+		container_name,
+		target,
+		request_scheme,
+		request_action,
+		request_source_organization,
+		request_source_repository,
+		request_umbrella_organization,
+		request_umbrella_repository,
+		request_container_name,
+		request_target
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	ON CONFLICT(locator) DO UPDATE SET
+		description=excluded.description,
+		expose_path=excluded.expose_path,
+		scheme=excluded.scheme,
+		action=excluded.action,
+		source_organization=excluded.source_organization,
+		source_repository=excluded.source_repository,
+		umbrella_organization=excluded.umbrella_organization,
+		umbrella_repository=excluded.umbrella_repository,
+		container_name=excluded.container_name,
+		target=excluded.target,
+		request_scheme=excluded.request_scheme,
+		request_action=excluded.request_action,
+		request_source_organization=excluded.request_source_organization,
+		request_source_repository=excluded.request_source_repository,
+		request_umbrella_organization=excluded.request_umbrella_organization,
+		request_umbrella_repository=excluded.request_umbrella_repository,
+		request_container_name=excluded.request_container_name,
+		request_target=excluded.request_target;
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to prepare statement: %w", err)
+	}
+	defer stmt.Close()
+
 	for _, req := range requested {
-		requestedMaps = append(requestedMaps, requestedToMap(req))
-	}
+		// Compute the locator hash
+		data := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+			req.Description,
+			req.DestinationPath,
+			req.Scheme,
+			req.Action,
+			req.SourceOrganization,
+			req.SourceRepository,
+			req.UmbrellaOrganization,
+			req.UmbrellaRepository,
+			req.ContainerName,
+			req.Target,
+			req.RequestScheme,
+			req.RequestAction,
+			req.RequestSourceOrg,
+			req.RequestSourceRepo,
+			req.RequestUmbrellaOrg,
+			req.RequestUmbrellaRepo,
+			req.RequestContainerName,
+			req.RequestTarget,
+		)
 
-	// Check each granted permission against all requested permissions
-	for _, g := range granted {
-		grantedMap := grantedToMap(g)
+		locator := sha256.Sum256([]byte(data))
 
-		// Check if this granted permission matches any of the requested permissions
-		for _, reqMap := range requestedMaps {
-			// Use reverse logic: check if requested fields are satisfied by granted fields
-			match := true
-			for reqKey, reqValue := range reqMap {
-				if grantedValue, exists := grantedMap[reqKey]; exists {
-					// Field exists in granted, check if it matches
-					if grantedValue == "*" {
-						// Wildcard in granted matches any non-empty value in requested
-						if reqValue == "" {
-							match = false
-							break
-						}
-					} else if grantedValue != reqValue {
-						// Exact match required
-						match = false
-						break
-					}
-				}
-				// If field doesn't exist in granted, that's OK (granted doesn't restrict it)
-			}
-
-			if match {
-				matching = append(matching, g)
-				break // Found a match, no need to check other requested permissions
-			}
+		_, err := stmt.Exec(
+			locator,
+			req.Description,
+			req.DestinationPath,
+			req.Scheme,
+			req.Action,
+			req.SourceOrganization,
+			req.SourceRepository,
+			req.UmbrellaOrganization,
+			req.UmbrellaRepository,
+			req.ContainerName,
+			req.Target,
+			req.RequestScheme,
+			req.RequestAction,
+			req.RequestSourceOrg,
+			req.RequestSourceRepo,
+			req.RequestUmbrellaOrg,
+			req.RequestUmbrellaRepo,
+			req.RequestContainerName,
+			req.RequestTarget,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to execute statement: %w", err)
 		}
 	}
 
-	return matching
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }
 
-func makeGranted(scheme, action, sourceOrg, sourceRepo, umbrellaOrg, umbrellaRepo, containerName, target string) Granted {
-	return Granted{
-		Description:          "Auto-seeded permission",
-		ExposePath:           "/var/timeline",
-		Scheme:               scheme,
-		Action:               action,
-		SourceOrganization:   sourceOrg,
-		SourceRepository:     sourceRepo,
-		UmbrellaOrganization: umbrellaOrg,
-		UmbrellaRepository:   umbrellaRepo,
-		ContainerName:        containerName,
-		Target:               target,
+func (dm *DbManager) SaveGranted(granted Granted) error {
+	// Compute the locator hash
+	data := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+		granted.Description,
+		granted.ExposePath,
+		granted.Scheme,
+		granted.Action,
+		granted.SourceOrganization,
+		granted.SourceRepository,
+		granted.UmbrellaOrganization,
+		granted.UmbrellaRepository,
+		granted.ContainerName,
+		granted.Target,
+		granted.GrandScheme,
+		granted.GrandAction,
+		granted.GrandSourceOrganization,
+		granted.GrandSourceRepository,
+		granted.GrandUmbrellaOrganization,
+		granted.GrandUmbrellaRepository,
+		granted.GrandContainerName,
+		granted.GrandTarget,
+	)
+
+	locator := sha256.Sum256([]byte(data))
+
+	query := `
+	INSERT INTO granted (
+		locator,
+		description,
+		expose_path,
+		scheme,
+		action,
+		source_organization,
+		source_repository,
+		umbrella_organization,
+		umbrella_repository,
+		container_name,
+		target,
+		grand_scheme,
+		grand_action,
+		grand_source_organization,
+		grand_source_repository,
+		grand_umbrella_organization,
+		grand_umbrella_repository,
+		grand_container_name,
+		grand_target
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	 ON CONFLICT(locator) DO UPDATE SET
+	 		description=excluded.description,
+			expose_path=excluded.expose_path,
+			scheme=excluded.scheme,
+			action=excluded.action,
+			source_organization=excluded.source_organization,
+			source_repository=excluded.source_repository,
+			umbrella_organization=excluded.umbrella_organization,
+			umbrella_repository=excluded.umbrella_repository,
+			container_name=excluded.container_name,
+			target=excluded.target,
+			grand_scheme=excluded.grand_scheme,
+			grand_action=excluded.grand_action,
+			grand_source_organization=excluded.grand_source_organization,
+			grand_source_repository=excluded.grand_source_repository,
+			grand_umbrella_organization=excluded.grand_umbrella_organization,
+			grand_umbrella_repository=excluded.grand_umbrella_repository,
+			grand_container_name=excluded.grand_container_name,
+			grand_target=excluded.grand_target;
+	`
+
+	_, err := dm.db.Exec(query,
+		locator,
+		granted.Description,
+		granted.ExposePath,
+		granted.Scheme,
+		granted.Action,
+		granted.SourceOrganization,
+		granted.SourceRepository,
+		granted.UmbrellaOrganization,
+		granted.UmbrellaRepository,
+		granted.ContainerName,
+		granted.Target,
+		granted.GrandScheme,
+		granted.GrandAction,
+		granted.GrandSourceOrganization,
+		granted.GrandSourceRepository,
+		granted.GrandUmbrellaOrganization,
+		granted.GrandUmbrellaRepository,
+		granted.GrandContainerName,
+		granted.GrandTarget,
+	)
+
+	return err
+}
+
+func (dm *DbManager) GetAllGranted() ([]Granted, error) {
+	query := `SELECT description, expose_path, scheme, action, source_organization,
+		source_repository, umbrella_organization, umbrella_repository,
+		container_name, target, grand_scheme, grand_action, grand_source_organization,
+		grand_source_repository, grand_umbrella_organization, grand_umbrella_repository,
+		grand_container_name, grand_target FROM granted`
+
+	rows, err := dm.db.Query(query)
+	if err != nil {
+		return nil, err
 	}
+	defer rows.Close()
+
+	var granted []Granted
+	for rows.Next() {
+		var g Granted
+		err := rows.Scan(
+			&g.Description,
+			&g.ExposePath,
+			&g.Scheme,
+			&g.Action,
+			&g.SourceOrganization,
+			&g.SourceRepository,
+			&g.UmbrellaOrganization,
+			&g.UmbrellaRepository,
+			&g.ContainerName,
+			&g.Target,
+			&g.GrandScheme,
+			&g.GrandAction,
+			&g.GrandSourceOrganization,
+			&g.GrandSourceRepository,
+			&g.GrandUmbrellaOrganization,
+			&g.GrandUmbrellaRepository,
+			&g.GrandContainerName,
+			&g.GrandTarget,
+		)
+		if err != nil {
+			return nil, err
+		}
+		granted = append(granted, g)
+	}
+
+	return granted, rows.Err()
+}
+
+func (dm *DbManager) Close() error {
+	return dm.db.Close()
+}
+
+// FindGranted finds granted permissions that match the requested permissions using database queries
+func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
+	return []Granted{}, nil
 }
