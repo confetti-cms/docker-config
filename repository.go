@@ -14,24 +14,24 @@ type DbManager struct {
 }
 
 type Requested struct {
-	Description          string `json:"description,omitempty"`
-	DestinationPath      string `json:"destination_path,omitempty"`
-	Scheme               string `json:"scheme,omitempty"`
-	Action               string `json:"action,omitempty"`
-	SourceOrganization   string `json:"source_organization,omitempty"`
-	SourceRepository     string `json:"source_repository,omitempty"`
-	UmbrellaOrganization string `json:"umbrella_organization,omitempty"`
-	UmbrellaRepository   string `json:"umbrella_repository,omitempty"`
-	ContainerName        string `json:"container_name,omitempty"`
-	Target               string `json:"target,omitempty"`
-	RequestScheme        string `json:"request_scheme,omitempty"`
-	RequestAction        string `json:"request_action,omitempty"`
-	RequestSourceOrg     string `json:"request_source_organization,omitempty"`
-	RequestSourceRepo    string `json:"request_source_repository,omitempty"`
-	RequestUmbrellaOrg   string `json:"request_umbrella_organization,omitempty"`
-	RequestUmbrellaRepo  string `json:"request_umbrella_repository,omitempty"`
-	RequestContainerName string `json:"request_container_name,omitempty"`
-	RequestTarget        string `json:"request_target,omitempty"`
+	Description                 string `json:"description,omitempty"`
+	DestinationPath             string `json:"destination_path,omitempty"`
+	Scheme                      string `json:"scheme,omitempty"`
+	Action                      string `json:"action,omitempty"`
+	SourceOrganization          string `json:"source_organization,omitempty"`
+	SourceRepository            string `json:"source_repository,omitempty"`
+	UmbrellaOrganization        string `json:"umbrella_organization,omitempty"`
+	UmbrellaRepository          string `json:"umbrella_repository,omitempty"`
+	ContainerName               string `json:"container_name,omitempty"`
+	Target                      string `json:"target,omitempty"`
+	RequestScheme               string `json:"request_scheme,omitempty"`
+	RequestAction               string `json:"request_action,omitempty"`
+	RequestSourceOrganization   string `json:"request_source_organization,omitempty"`
+	RequestSourceRepository     string `json:"request_source_repository,omitempty"`
+	RequestUmbrellaOrganization string `json:"request_umbrella_organization,omitempty"`
+	RequestUmbrellaRepository   string `json:"request_umbrella_repository,omitempty"`
+	RequestContainerName        string `json:"request_container_name,omitempty"`
+	RequestTarget               string `json:"request_target,omitempty"`
 }
 
 type Granted struct {
@@ -197,10 +197,10 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 			req.Target,
 			req.RequestScheme,
 			req.RequestAction,
-			req.RequestSourceOrg,
-			req.RequestSourceRepo,
-			req.RequestUmbrellaOrg,
-			req.RequestUmbrellaRepo,
+			req.RequestSourceOrganization,
+			req.RequestSourceRepository,
+			req.RequestUmbrellaOrganization,
+			req.RequestUmbrellaRepository,
 			req.RequestContainerName,
 			req.RequestTarget,
 		)
@@ -221,10 +221,10 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 			req.Target,
 			req.RequestScheme,
 			req.RequestAction,
-			req.RequestSourceOrg,
-			req.RequestSourceRepo,
-			req.RequestUmbrellaOrg,
-			req.RequestUmbrellaRepo,
+			req.RequestSourceOrganization,
+			req.RequestSourceRepository,
+			req.RequestUmbrellaOrganization,
+			req.RequestUmbrellaRepository,
 			req.RequestContainerName,
 			req.RequestTarget,
 		)
@@ -419,8 +419,54 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 			args = append(args, req.Action, req.RequestAction)
 		}
 
-		// Combine scheme and action conditions with AND
-		conditions = append(conditions, fmt.Sprintf("(%s AND %s)", schemeCondition, actionCondition))
+		// Organization and Repository matching conditions
+		var sourceOrgCondition string
+		if req.RequestSourceOrganization == "*" {
+			// If RequestSourceOrg is "*", match any GrandSourceOrganization
+			sourceOrgCondition = "source_organization = ?"
+			args = append(args, req.SourceOrganization)
+		} else {
+			// Match when source_organization equals the requested SourceOrganization AND (grand_source_organization equals the request_source_org OR grand_source_organization is "*")
+			sourceOrgCondition = "(source_organization = ? AND (grand_source_organization = ? OR grand_source_organization = '*'))"
+			args = append(args, req.SourceOrganization, req.RequestSourceOrganization)
+		}
+
+		var sourceRepoCondition string
+		if req.RequestSourceRepository == "*" {
+			// If RequestSourceRepo is "*", match any GrandSourceRepository
+			sourceRepoCondition = "source_repository = ?"
+			args = append(args, req.SourceRepository)
+		} else {
+			// Match when source_repository equals the requested SourceRepository AND (grand_source_repository equals the request_source_repo OR grand_source_repository is "*")
+			sourceRepoCondition = "(source_repository = ? AND (grand_source_repository = ? OR grand_source_repository = '*'))"
+			args = append(args, req.SourceRepository, req.RequestSourceRepository)
+		}
+
+		var umbrellaOrgCondition string
+		if req.RequestUmbrellaOrganization == "*" {
+			// If RequestUmbrellaOrg is "*", match any GrandUmbrellaOrganization
+			umbrellaOrgCondition = "umbrella_organization = ?"
+			args = append(args, req.UmbrellaOrganization)
+		} else {
+			// Match when umbrella_organization equals the requested UmbrellaOrganization AND (grand_umbrella_organization equals the request_umbrella_org OR grand_umbrella_organization is "*")
+			umbrellaOrgCondition = "(umbrella_organization = ? AND (grand_umbrella_organization = ? OR grand_umbrella_organization = '*'))"
+			args = append(args, req.UmbrellaOrganization, req.RequestUmbrellaOrganization)
+		}
+
+		var umbrellaRepoCondition string
+		if req.RequestUmbrellaRepository == "*" {
+			// If RequestUmbrellaRepo is "*", match any GrandUmbrellaRepository
+			umbrellaRepoCondition = "umbrella_repository = ?"
+			args = append(args, req.UmbrellaRepository)
+		} else {
+			// Match when umbrella_repository equals the requested UmbrellaRepository AND (grand_umbrella_repository equals the request_umbrella_repo OR grand_umbrella_repository is "*")
+			umbrellaRepoCondition = "(umbrella_repository = ? AND (grand_umbrella_repository = ? OR grand_umbrella_repository = '*'))"
+			args = append(args, req.UmbrellaRepository, req.RequestUmbrellaRepository)
+		}
+
+		// Combine all conditions with AND
+		conditions = append(conditions, fmt.Sprintf("(%s AND %s AND %s AND %s AND %s AND %s)",
+			schemeCondition, actionCondition, sourceOrgCondition, sourceRepoCondition, umbrellaOrgCondition, umbrellaRepoCondition))
 	}
 
 	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,

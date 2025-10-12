@@ -101,6 +101,102 @@ func TestRepository_matching(t *testing.T) {
 			granted:       Granted{Action: "read", GrandAction: "read"},
 			expectedCount: 1,
 		},
+		{
+			name:          "exact source organization match",
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "test-org"},
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "test-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "source organization mismatch",
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "test-org"},
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "different-org"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand source organization",
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "test-org"},
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request source organization",
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "*"},
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "test-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact source repository match",
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "test-repo"},
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "test-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "source repository mismatch",
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "test-repo"},
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "different-repo"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand source repository",
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "test-repo"},
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request source repository",
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "*"},
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "test-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact umbrella organization match",
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "test-umb-org"},
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "test-umb-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "umbrella organization mismatch",
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "test-umb-org"},
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "different-umb-org"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand umbrella organization",
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "test-umb-org"},
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request umbrella organization",
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "*"},
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "test-umb-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact umbrella repository match",
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "test-umb-repo"},
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "test-umb-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "umbrella repository mismatch",
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "test-umb-repo"},
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "different-umb-repo"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand umbrella repository",
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "test-umb-repo"},
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request umbrella repository",
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "*"},
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "test-umb-repo"},
+			expectedCount: 1,
+		},
 	}
 
 	for _, tt := range tests {
