@@ -507,6 +507,91 @@ func TestRepository_FindRequested_matching(t *testing.T) {
 	}
 }
 
+func TestRepository_FindGranted_multiple_scheme_matches(t *testing.T) {
+	// Given
+	is, dbManager := setupTestDB(t)
+
+	// Create two granted entries with the same scheme but different GrandScheme values
+	granted1 := Granted{
+		Scheme:      "image",
+		GrandScheme: "image",
+	}
+
+	granted2 := Granted{
+		Scheme:      "image",
+		GrandScheme: "json",
+	}
+
+	// Save both granted entries
+	mockGranted(dbManager, granted1)
+	mockGranted(dbManager, granted2)
+
+	// Create one requested entry that should match both granted entries using wildcard
+	requested := []Requested{
+		{
+			Scheme:        "image",
+			RequestScheme: "*", // Wildcard matches any GrandScheme
+		},
+	}
+
+	// When
+	result, err := dbManager.FindGranted(requested)
+
+	// Then
+	is.NoErr(err)
+	is.Equal(len(result), 2) // Should return both matching granted entries
+
+	// Verify that we got results for both GrandScheme values
+	grandSchemes := make(map[string]bool)
+	for _, granted := range result {
+		grandSchemes[granted.GrandScheme] = true
+	}
+	is.Equal(len(grandSchemes), 2) // Should have both grand schemes
+	is.True(grandSchemes["image"])
+	is.True(grandSchemes["json"])
+}
+func TestRepository_FindRequested_multiple_scheme_matches(t *testing.T) {
+	// Given
+	is, dbManager := setupTestDB(t)
+
+	// Create two requested entries with the same scheme but different RequestScheme values
+	requested1 := Requested{
+		Scheme:        "image",
+		RequestScheme: "image",
+	}
+
+	requested2 := Requested{
+		Scheme:        "image",
+		RequestScheme: "json",
+	}
+
+	// Save both requested entries
+	mockRequested(dbManager, requested1)
+	mockRequested(dbManager, requested2)
+
+	// Create one granted entry that should match both requested entries using wildcard
+	granted := Granted{
+		Scheme:      "image",
+		GrandScheme: "*", // Wildcard matches any RequestScheme when scheme matches
+	}
+
+	// When
+	result, err := dbManager.FindRequested([]Granted{granted})
+
+	// Then
+	is.NoErr(err)
+	is.Equal(len(result), 2) // Should return both matching requested entries
+
+	// Verify that we got results for both RequestScheme values
+	requestSchemes := make(map[string]bool)
+	for _, requested := range result {
+		requestSchemes[requested.RequestScheme] = true
+	}
+	is.Equal(len(requestSchemes), 2) // Should have both request schemes
+	is.True(requestSchemes["image"])
+	is.True(requestSchemes["json"])
+}
+
 func mockGranted(db *DbManager, granted Granted) []Granted {
 	// Mock implementation to insert granted entry into the database
 	err := db.SaveGranted(granted)
