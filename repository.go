@@ -395,7 +395,8 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 	for _, req := range requested {
 		// Each requested item needs both scheme and grand_scheme to match
-		conditions = append(conditions, "(scheme = ? AND grand_scheme = ?)")
+		// If grand_scheme is "*", it matches any scheme
+		conditions = append(conditions, "(scheme = ? AND (grand_scheme = ? OR grand_scheme = '*'))")
 		args = append(args, req.Scheme, req.RequestScheme)
 	}
 
