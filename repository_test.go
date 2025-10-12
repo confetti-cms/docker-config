@@ -34,49 +34,60 @@ func TestRepository_no_requested_entries(t *testing.T) {
 	is.Equal(len(result), 0)
 }
 
-func TestRepository_request_scheme_match_granted_scheme(t *testing.T) {
-	// Given
-	is, db := setupTestDB(t)
+func TestRepository_scheme_matching(t *testing.T) {
+	tests := []struct {
+		name          string
+		requested     Requested
+		granted       Granted
+		expectedCount int
+	}{
+		{
+			name:          "exact scheme match",
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			expectedCount: 1,
+		},
+		{
+			name:          "requested scheme does not match grand scheme",
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{Scheme: "image", GrandScheme: "json"},
+			expectedCount: 0,
+		},
+		{
+			name:          "request scheme does not match granted scheme",
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{Scheme: "json", GrandScheme: "image"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand scheme",
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{Scheme: "image", GrandScheme: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request scheme",
+			requested:     Requested{Scheme: "image", RequestScheme: "*"},
+			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			expectedCount: 1,
+		},
+	}
 
-	r := mockRequested(db, Requested{Scheme: "image", RequestScheme: "image"})
-	mockGranted(db, Granted{Scheme: "image", GrandScheme: "image"})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is, db := setupTestDB(t)
 
-	// When
-	result, err := db.FindGranted(r)
+			r := mockRequested(db, tt.requested)
+			mockGranted(db, tt.granted)
 
-	// Then
-	is.NoErr(err)
-	is.Equal(len(result), 1)
-}
+			// When
+			result, err := db.FindGranted(r)
 
-func TestRepository_requested_scheme_does_not_match_grand_scheme(t *testing.T) {
-	// Given
-	is, db := setupTestDB(t)
-
-	r := mockRequested(db, Requested{Scheme: "image", RequestScheme: "image"})
-	mockGranted(db, Granted{Scheme: "image", GrandScheme: "json"})
-
-	// When
-	result, err := db.FindGranted(r)
-
-	// Then
-	is.NoErr(err)
-	is.Equal(len(result), 0)
-}
-
-func TestRepository_request_scheme_does_not_match_granted_scheme(t *testing.T) {
-	// Given
-	is, db := setupTestDB(t)
-
-	r := mockRequested(db, Requested{Scheme: "image", RequestScheme: "image"})
-	mockGranted(db, Granted{Scheme: "json", GrandScheme: "image"})
-
-	// When
-	result, err := db.FindGranted(r)
-
-	// Then
-	is.NoErr(err)
-	is.Equal(len(result), 0)
+			// Then
+			is.NoErr(err)
+			is.Equal(len(result), tt.expectedCount)
+		})
+	}
 }
 
 func mockGranted(db *DbManager, granted Granted) []Granted {
@@ -86,36 +97,6 @@ func mockGranted(db *DbManager, granted Granted) []Granted {
 		panic(err)
 	}
 	return []Granted{granted}
-}
-
-func TestRepository_requested_scheme_match_grant_scheme_with_a_wildcard(t *testing.T) {
-	// Given
-	is, db := setupTestDB(t)
-
-	r := mockRequested(db, Requested{Scheme: "image", RequestScheme: "image"})
-	mockGranted(db, Granted{Scheme: "image", GrandScheme: "*"})
-
-	// When
-	result, err := db.FindGranted(r)
-
-	// Then
-	is.NoErr(err)
-	is.Equal(len(result), 1)
-}
-
-func TestRepository_request_scheme_with_a_wildcard_match_grant_scheme(t *testing.T) {
-	// Given
-	is, db := setupTestDB(t)
-
-	r := mockRequested(db, Requested{Scheme: "image", RequestScheme: "*"})
-	mockGranted(db, Granted{Scheme: "image", GrandScheme: "image"})
-
-	// When
-	result, err := db.FindGranted(r)
-
-	// Then
-	is.NoErr(err)
-	is.Equal(len(result), 1)
 }
 
 func mockRequested(db *DbManager, requested Requested) []Requested {
