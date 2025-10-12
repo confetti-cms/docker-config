@@ -34,7 +34,7 @@ func TestRepository_no_requested_entries(t *testing.T) {
 	is.Equal(len(result), 0)
 }
 
-func TestRepository_matching(t *testing.T) {
+func TestRepository_FindGranted_matching(t *testing.T) {
 	tests := []struct {
 		name          string
 		requested     Requested
