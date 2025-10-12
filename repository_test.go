@@ -264,6 +264,249 @@ func TestRepository_FindGranted_matching(t *testing.T) {
 	}
 }
 
+func TestRepository_FindRequested_no_granted_entries(t *testing.T) {
+	// Given
+	is, dbManager := setupTestDB(t)
+	granted := []Granted{}
+
+	// When
+	result, err := dbManager.FindRequested(granted)
+
+	// Then
+	is.NoErr(err)
+	is.Equal(len(result), 0)
+}
+
+func TestRepository_FindRequested_matching(t *testing.T) {
+	tests := []struct {
+		name          string
+		granted       Granted
+		requested     Requested
+		expectedCount int
+	}{
+		{
+			name:          "exact scheme match",
+			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			expectedCount: 1,
+		},
+		{
+			name:          "granted scheme does not match request scheme",
+			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			requested:     Requested{Scheme: "image", RequestScheme: "json"},
+			expectedCount: 0,
+		},
+		{
+			name:          "grant scheme does not match requested scheme",
+			granted:       Granted{Scheme: "json", GrandScheme: "image"},
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request scheme",
+			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			requested:     Requested{Scheme: "image", RequestScheme: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand scheme",
+			granted:       Granted{Scheme: "image", GrandScheme: "*"},
+			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact action match",
+			granted:       Granted{Action: "read", GrandAction: "read"},
+			requested:     Requested{Action: "read", RequestAction: "read"},
+			expectedCount: 1,
+		},
+		{
+			name:          "granted action does not match request action",
+			granted:       Granted{Action: "read", GrandAction: "read"},
+			requested:     Requested{Action: "read", RequestAction: "write"},
+			expectedCount: 0,
+		},
+		{
+			name:          "grant action does not match requested action",
+			granted:       Granted{Action: "write", GrandAction: "read"},
+			requested:     Requested{Action: "read", RequestAction: "read"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request action",
+			granted:       Granted{Action: "read", GrandAction: "read"},
+			requested:     Requested{Action: "read", RequestAction: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand action",
+			granted:       Granted{Action: "read", GrandAction: "*"},
+			requested:     Requested{Action: "read", RequestAction: "read"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact source organization match",
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "test-org"},
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "test-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "source organization mismatch",
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "test-org"},
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "different-org"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request source organization",
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "test-org"},
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand source organization",
+			granted:       Granted{SourceOrganization: "test-org", GrandSourceOrganization: "*"},
+			requested:     Requested{SourceOrganization: "test-org", RequestSourceOrganization: "test-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact source repository match",
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "test-repo"},
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "test-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "source repository mismatch",
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "test-repo"},
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "different-repo"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request source repository",
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "test-repo"},
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand source repository",
+			granted:       Granted{SourceRepository: "test-repo", GrandSourceRepository: "*"},
+			requested:     Requested{SourceRepository: "test-repo", RequestSourceRepository: "test-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact umbrella organization match",
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "test-umb-org"},
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "test-umb-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "umbrella organization mismatch",
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "test-umb-org"},
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "different-umb-org"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request umbrella organization",
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "test-umb-org"},
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand umbrella organization",
+			granted:       Granted{UmbrellaOrganization: "test-umb-org", GrandUmbrellaOrganization: "*"},
+			requested:     Requested{UmbrellaOrganization: "test-umb-org", RequestUmbrellaOrganization: "test-umb-org"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact umbrella repository match",
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "test-umb-repo"},
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "test-umb-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "umbrella repository mismatch",
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "test-umb-repo"},
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "different-umb-repo"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request umbrella repository",
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "test-umb-repo"},
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand umbrella repository",
+			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "*"},
+			requested:     Requested{UmbrellaRepository: "test-umb-repo", RequestUmbrellaRepository: "test-umb-repo"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact container name match",
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "test-container"},
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "test-container"},
+			expectedCount: 1,
+		},
+		{
+			name:          "container name mismatch",
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "test-container"},
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "different-container"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request container name",
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "test-container"},
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand container name",
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "*"},
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "test-container"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact target match",
+			granted:       Granted{Target: "cmd", GrandTarget: "cmd"},
+			requested:     Requested{Target: "cmd", RequestTarget: "cmd"},
+			expectedCount: 1,
+		},
+		{
+			name:          "target mismatch",
+			granted:       Granted{Target: "cmd", GrandTarget: "cmd"},
+			requested:     Requested{Target: "cmd", RequestTarget: "all_up"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in request target",
+			granted:       Granted{Target: "cmd", GrandTarget: "cmd"},
+			requested:     Requested{Target: "cmd", RequestTarget: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in grand target",
+			granted:       Granted{Target: "cmd", GrandTarget: "*"},
+			requested:     Requested{Target: "cmd", RequestTarget: "cmd"},
+			expectedCount: 1,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is, db := setupTestDB(t)
+
+			g := mockGranted(db, tt.granted)
+			mockRequested(db, tt.requested)
+
+			// When
+			result, err := db.FindRequested(g)
+
+			// Then
+			is.NoErr(err)
+			is.Equal(len(result), tt.expectedCount)
+		})
+	}
+}
+
 func mockGranted(db *DbManager, granted Granted) []Granted {
 	// Mock implementation to insert granted entry into the database
 	err := db.SaveGranted(granted)
@@ -275,6 +518,10 @@ func mockGranted(db *DbManager, granted Granted) []Granted {
 
 func mockRequested(db *DbManager, requested Requested) []Requested {
 	// Mock implementation to insert requested entry into the database
+	err := db.SaveRequested([]Requested{requested})
+	if err != nil {
+		panic(err)
+	}
 	return []Requested{requested}
 }
 
