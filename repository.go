@@ -464,9 +464,31 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 			args = append(args, req.UmbrellaRepository, req.RequestUmbrellaRepository)
 		}
 
+		var containerNameCondition string
+		if req.RequestContainerName == "*" {
+			// If RequestContainerName is "*", match any GrandContainerName
+			containerNameCondition = "container_name = ?"
+			args = append(args, req.ContainerName)
+		} else {
+			// Match when container_name equals the requested ContainerName AND (grand_container_name equals the request_container_name OR grand_container_name is "*")
+			containerNameCondition = "(container_name = ? AND (grand_container_name = ? OR grand_container_name = '*'))"
+			args = append(args, req.ContainerName, req.RequestContainerName)
+		}
+
+		var targetCondition string
+		if req.RequestTarget == "*" {
+			// If RequestTarget is "*", match any GrandTarget
+			targetCondition = "target = ?"
+			args = append(args, req.Target)
+		} else {
+			// Match when target equals the requested Target AND (grand_target equals the request_target OR grand_target is "*")
+			targetCondition = "(target = ? AND (grand_target = ? OR grand_target = '*'))"
+			args = append(args, req.Target, req.RequestTarget)
+		}
+
 		// Combine all conditions with AND
-		conditions = append(conditions, fmt.Sprintf("(%s AND %s AND %s AND %s AND %s AND %s)",
-			schemeCondition, actionCondition, sourceOrgCondition, sourceRepoCondition, umbrellaOrgCondition, umbrellaRepoCondition))
+		conditions = append(conditions, fmt.Sprintf("(%s AND %s AND %s AND %s AND %s AND %s AND %s AND %s)",
+			schemeCondition, actionCondition, sourceOrgCondition, sourceRepoCondition, umbrellaOrgCondition, umbrellaRepoCondition, containerNameCondition, targetCondition))
 	}
 
 	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,

@@ -197,6 +197,54 @@ func TestRepository_matching(t *testing.T) {
 			granted:       Granted{UmbrellaRepository: "test-umb-repo", GrandUmbrellaRepository: "test-umb-repo"},
 			expectedCount: 1,
 		},
+		{
+			name:          "exact container name match",
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "test-container"},
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "test-container"},
+			expectedCount: 1,
+		},
+		{
+			name:          "container name mismatch",
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "test-container"},
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "different-container"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand container name",
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "test-container"},
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request container name",
+			requested:     Requested{ContainerName: "test-container", RequestContainerName: "*"},
+			granted:       Granted{ContainerName: "test-container", GrandContainerName: "test-container"},
+			expectedCount: 1,
+		},
+		{
+			name:          "exact target match",
+			requested:     Requested{Target: "test-target", RequestTarget: "test-target"},
+			granted:       Granted{Target: "test-target", GrandTarget: "test-target"},
+			expectedCount: 1,
+		},
+		{
+			name:          "target mismatch",
+			requested:     Requested{Target: "test-target", RequestTarget: "test-target"},
+			granted:       Granted{Target: "test-target", GrandTarget: "different-target"},
+			expectedCount: 0,
+		},
+		{
+			name:          "wildcard in grand target",
+			requested:     Requested{Target: "test-target", RequestTarget: "test-target"},
+			granted:       Granted{Target: "test-target", GrandTarget: "*"},
+			expectedCount: 1,
+		},
+		{
+			name:          "wildcard in request target",
+			requested:     Requested{Target: "test-target", RequestTarget: "*"},
+			granted:       Granted{Target: "test-target", GrandTarget: "test-target"},
+			expectedCount: 1,
+		},
 	}
 
 	for _, tt := range tests {
