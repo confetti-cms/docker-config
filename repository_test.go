@@ -21,7 +21,7 @@ func setupTestDB(t *testing.T) (*is.I, *DbManager) {
 	return is, dbManager
 }
 
-func TestRepository_no_requested_entries(t *testing.T) {
+func TestRepository_FindGranted_no_requested_entries(t *testing.T) {
 	// Given
 	is, dbManager := setupTestDB(t)
 	requested := []Requested{}
