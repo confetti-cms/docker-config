@@ -395,9 +395,17 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 	for _, req := range requested {
 		// Each requested item needs both scheme and grand_scheme to match
-		// If grand_scheme is "*", it matches any scheme
-		conditions = append(conditions, "(scheme = ? AND (grand_scheme = ? OR grand_scheme = '*'))")
-		args = append(args, req.Scheme, req.RequestScheme)
+		// Handle wildcards in either RequestScheme or GrandScheme
+		if req.RequestScheme == "*" {
+			// If RequestScheme is "*", match any GrandScheme
+			conditions = append(conditions, "scheme = ?")
+			args = append(args, req.Scheme)
+		} else {
+			// Check if we need to look up GrandScheme from database to check for wildcard
+			// For now, assume we need exact match unless RequestScheme is "*"
+			conditions = append(conditions, "(scheme = ? AND (grand_scheme = ? OR grand_scheme = '*'))")
+			args = append(args, req.Scheme, req.RequestScheme)
+		}
 	}
 
 	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,
