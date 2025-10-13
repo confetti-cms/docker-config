@@ -10,7 +10,7 @@ import (
 type Requested struct {
 	Description                 string `json:"description,omitempty"`
 	Host                        string
-	DestinationPath             string
+	DestinationPath             string `json:"destination_path,omitempty"`
 	SourceOrganization          string
 	SourceRepository            string
 	UmbrellaOrganization        string
