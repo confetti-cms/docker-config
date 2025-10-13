@@ -16,8 +16,6 @@ func TestSaveRequested_TransactionBeginFailure(t *testing.T) {
 		{
 			Description:                 "test",
 			DestinationPath:             "/test",
-			Scheme:                      "test",
-			Action:                      "test",
 			SourceOrganization:          "test",
 			SourceRepository:            "test",
 			UmbrellaOrganization:        "test",

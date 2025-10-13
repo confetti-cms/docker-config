@@ -26,8 +26,6 @@ func TestRepositoryLocator_fill_requested_with_empty_requested(t *testing.T) {
 	is.Equal(result.Target, "cmd")
 	is.Equal(result.Description, "")
 	is.Equal(result.DestinationPath, "")
-	is.Equal(result.Scheme, "")
-	is.Equal(result.Action, "")
 	is.Equal(result.RequestScheme, "")
 	is.Equal(result.RequestAction, "")
 	is.Equal(result.RequestSourceOrganization, "")
@@ -44,8 +42,6 @@ func TestRepositoryLocator_fill_requested_with_filled_requested(t *testing.T) {
 	requested := Requested{
 		Description:                 "My description",
 		DestinationPath:             "/my/path",
-		Scheme:                      "docker",
-		Action:                      "pull",
 		RequestScheme:               "docker",
 		RequestAction:               "pull",
 		RequestSourceOrganization:   "my-org",
@@ -71,8 +67,6 @@ func TestRepositoryLocator_fill_requested_with_filled_requested(t *testing.T) {
 	is.Equal(result.Target, "all_up")
 	is.Equal(result.Description, "My description")
 	is.Equal(result.DestinationPath, "/my/path")
-	is.Equal(result.Scheme, "docker")
-	is.Equal(result.Action, "pull")
 	is.Equal(result.RequestScheme, "docker")
 	is.Equal(result.RequestAction, "pull")
 	is.Equal(result.RequestSourceOrganization, "my-org")

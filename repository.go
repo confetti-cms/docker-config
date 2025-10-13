@@ -11,8 +11,6 @@ type Requested struct {
 	Description                 string `json:"description,omitempty"`
 	Host                        string `json:"host,omitempty"`
 	DestinationPath             string `json:"destination_path,omitempty"`
-	Scheme                      string `json:"scheme,omitempty"`
-	Action                      string `json:"action,omitempty"`
 	SourceOrganization          string `json:"source_organization,omitempty"`
 	SourceRepository            string `json:"source_repository,omitempty"`
 	UmbrellaOrganization        string `json:"umbrella_organization,omitempty"`
@@ -33,8 +31,6 @@ type Granted struct {
 	Description               string `json:"description,omitempty"`
 	Host                      string `json:"host,omitempty"`
 	ExposePath                string `json:"expose_path,omitempty"`
-	Scheme                    string `json:"scheme,omitempty"`
-	Action                    string `json:"action,omitempty"`
 	SourceOrganization        string `json:"source_organization,omitempty"`
 	SourceRepository          string `json:"source_repository,omitempty"`
 	UmbrellaOrganization      string `json:"umbrella_organization,omitempty"`
@@ -63,8 +59,6 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 		locator,
 		description,
 		expose_path,
-		scheme,
-		action,
 		source_organization,
 		source_repository,
 		umbrella_organization,
@@ -79,12 +73,10 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 		request_umbrella_repository,
 		request_container_name,
 		request_target
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	ON CONFLICT(locator) DO UPDATE SET
-		description=excluded.description,
+			description=excluded.description,
 		expose_path=excluded.expose_path,
-		scheme=excluded.scheme,
-		action=excluded.action,
 		source_organization=excluded.source_organization,
 		source_repository=excluded.source_repository,
 		umbrella_organization=excluded.umbrella_organization,
@@ -107,11 +99,9 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 
 	for _, req := range requested {
 		// Compute the locator hash
-		data := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+		data := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
 			req.Description,
 			req.DestinationPath,
-			req.Scheme,
-			req.Action,
 			req.SourceOrganization,
 			req.SourceRepository,
 			req.UmbrellaOrganization,
@@ -134,8 +124,6 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 			locator,
 			req.Description,
 			req.DestinationPath,
-			req.Scheme,
-			req.Action,
 			req.SourceOrganization,
 			req.SourceRepository,
 			req.UmbrellaOrganization,
@@ -165,11 +153,9 @@ func (dm *DbManager) SaveRequested(requested []Requested) error {
 
 func (dm *DbManager) SaveGranted(granted Granted) error {
 	// Compute the locator hash
-	data := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+	data := fmt.Sprintf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
 		granted.Description,
 		granted.ExposePath,
-		granted.Scheme,
-		granted.Action,
 		granted.SourceOrganization,
 		granted.SourceRepository,
 		granted.UmbrellaOrganization,
@@ -193,8 +179,6 @@ func (dm *DbManager) SaveGranted(granted Granted) error {
 		locator,
 		description,
 		expose_path,
-		scheme,
-		action,
 		source_organization,
 		source_repository,
 		umbrella_organization,
@@ -209,13 +193,11 @@ func (dm *DbManager) SaveGranted(granted Granted) error {
 		grand_umbrella_repository,
 		grand_container_name,
 		grand_target
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	 ON CONFLICT(locator) DO UPDATE SET
-	 		description=excluded.description,
-			expose_path=excluded.expose_path,
-			scheme=excluded.scheme,
-			action=excluded.action,
-			source_organization=excluded.source_organization,
+	 	description=excluded.description,
+	 	expose_path=excluded.expose_path,
+	 	source_organization=excluded.source_organization,
 			source_repository=excluded.source_repository,
 			umbrella_organization=excluded.umbrella_organization,
 			umbrella_repository=excluded.umbrella_repository,
@@ -235,8 +217,6 @@ func (dm *DbManager) SaveGranted(granted Granted) error {
 		locator,
 		granted.Description,
 		granted.ExposePath,
-		granted.Scheme,
-		granted.Action,
 		granted.SourceOrganization,
 		granted.SourceRepository,
 		granted.UmbrellaOrganization,
@@ -274,23 +254,23 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 		var schemeCondition string
 		if g.GrandScheme == "*" {
 			// If GrandScheme is "*", match any RequestScheme
-			schemeCondition = "scheme = ?"
-			args = append(args, g.Scheme)
+			schemeCondition = "request_scheme = ?"
+			args = append(args, g.GrandScheme)
 		} else {
-			// Match when scheme equals the granted scheme AND (request_scheme equals the grand_scheme OR request_scheme is "*")
-			schemeCondition = "(scheme = ? AND (request_scheme = ? OR request_scheme = '*'))"
-			args = append(args, g.Scheme, g.GrandScheme)
+			// Match when request_scheme equals the grand_scheme OR request_scheme is "*"
+			schemeCondition = "(request_scheme = ? OR request_scheme = '*')"
+			args = append(args, g.GrandScheme)
 		}
 
 		var actionCondition string
 		if g.GrandAction == "*" {
 			// If GrandAction is "*", match any RequestAction
-			actionCondition = "action = ?"
-			args = append(args, g.Action)
+			actionCondition = "request_action = ?"
+			args = append(args, g.GrandAction)
 		} else {
-			// Match when action equals the granted action AND (request_action equals the grand_action OR request_action is "*")
-			actionCondition = "(action = ? AND (request_action = ? OR request_action = '*'))"
-			args = append(args, g.Action, g.GrandAction)
+			// Match when request_action equals the grand_action OR request_action is "*"
+			actionCondition = "(request_action = ? OR request_action = '*')"
+			args = append(args, g.GrandAction)
 		}
 
 		// Organization and Repository matching conditions
@@ -365,7 +345,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 			schemeCondition, actionCondition, sourceOrgCondition, sourceRepoCondition, umbrellaOrgCondition, umbrellaRepoCondition, containerNameCondition, targetCondition))
 	}
 
-	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,
+	query := fmt.Sprintf(`SELECT description, expose_path, source_organization,
 		source_repository, umbrella_organization, umbrella_repository,
 		container_name, target, request_scheme, request_action, request_source_organization,
 		request_source_repository, request_umbrella_organization, request_umbrella_repository,
@@ -384,8 +364,6 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 		err := rows.Scan(
 			&r.Description,
 			&r.DestinationPath,
-			&r.Scheme,
-			&r.Action,
 			&r.SourceOrganization,
 			&r.SourceRepository,
 			&r.UmbrellaOrganization,
@@ -428,23 +406,23 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 		var schemeCondition string
 		if req.RequestScheme == "*" {
 			// If RequestScheme is "*", match any GrandScheme
-			schemeCondition = "scheme = ?"
-			args = append(args, req.Scheme)
+			schemeCondition = "grand_scheme = ?"
+			args = append(args, req.RequestScheme)
 		} else {
-			// Match when scheme equals the requested scheme AND (grand_scheme equals the request_scheme OR grand_scheme is "*")
-			schemeCondition = "(scheme = ? AND (grand_scheme = ? OR grand_scheme = '*'))"
-			args = append(args, req.Scheme, req.RequestScheme)
+			// Match when grand_scheme equals the request_scheme OR grand_scheme is "*"
+			schemeCondition = "(grand_scheme = ? OR grand_scheme = '*')"
+			args = append(args, req.RequestScheme)
 		}
 
 		var actionCondition string
 		if req.RequestAction == "*" {
 			// If RequestAction is "*", match any GrandAction
-			actionCondition = "action = ?"
-			args = append(args, req.Action)
+			actionCondition = "grand_action = ?"
+			args = append(args, req.RequestAction)
 		} else {
-			// Match when action equals the requested action AND (grand_action equals the request_action OR grand_action is "*")
-			actionCondition = "(action = ? AND (grand_action = ? OR grand_action = '*'))"
-			args = append(args, req.Action, req.RequestAction)
+			// Match when grand_action equals the request_action OR grand_action is "*"
+			actionCondition = "(grand_action = ? OR grand_action = '*')"
+			args = append(args, req.RequestAction)
 		}
 
 		// Organization and Repository matching conditions
@@ -519,7 +497,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 			schemeCondition, actionCondition, sourceOrgCondition, sourceRepoCondition, umbrellaOrgCondition, umbrellaRepoCondition, containerNameCondition, targetCondition))
 	}
 
-	query := fmt.Sprintf(`SELECT description, expose_path, scheme, action, source_organization,
+	query := fmt.Sprintf(`SELECT description, expose_path, source_organization,
 		source_repository, umbrella_organization, umbrella_repository,
 		container_name, target, grand_scheme, grand_action, grand_source_organization,
 		grand_source_repository, grand_umbrella_organization, grand_umbrella_repository,
@@ -538,8 +516,6 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 		err := rows.Scan(
 			&g.Description,
 			&g.ExposePath,
-			&g.Scheme,
-			&g.Action,
 			&g.SourceOrganization,
 			&g.SourceRepository,
 			&g.UmbrellaOrganization,

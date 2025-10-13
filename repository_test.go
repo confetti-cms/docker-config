@@ -43,62 +43,62 @@ func TestRepository_FindGranted_matching(t *testing.T) {
 	}{
 		{
 			name:          "exact scheme match",
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
-			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "image"},
 			expectedCount: 1,
 		},
 		{
 			name:          "requested scheme does not match grand scheme",
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
-			granted:       Granted{Scheme: "image", GrandScheme: "json"},
+			requested:     Requested{RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "json"},
 			expectedCount: 0,
 		},
 		{
 			name:          "request scheme does not match granted scheme",
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
-			granted:       Granted{Scheme: "json", GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "image"},
 			expectedCount: 0,
 		},
 		{
 			name:          "wildcard in grand scheme",
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
-			granted:       Granted{Scheme: "image", GrandScheme: "*"},
+			requested:     Requested{RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "*"},
 			expectedCount: 1,
 		},
 		{
 			name:          "wildcard in request scheme",
-			requested:     Requested{Scheme: "image", RequestScheme: "*"},
-			granted:       Granted{Scheme: "image", GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "*"},
+			granted:       Granted{GrandScheme: "image"},
 			expectedCount: 1,
 		},
 		{
 			name:          "exact action match",
-			requested:     Requested{Action: "read", RequestAction: "read"},
-			granted:       Granted{Action: "read", GrandAction: "read"},
+			requested:     Requested{RequestAction: "read"},
+			granted:       Granted{GrandAction: "read"},
 			expectedCount: 1,
 		},
 		{
 			name:          "requested action does not match grand action",
-			requested:     Requested{Action: "read", RequestAction: "read"},
-			granted:       Granted{Action: "read", GrandAction: "write"},
+			requested:     Requested{RequestAction: "read"},
+			granted:       Granted{GrandAction: "write"},
 			expectedCount: 0,
 		},
 		{
 			name:          "request action does not match granted action",
-			requested:     Requested{Action: "read", RequestAction: "read"},
-			granted:       Granted{Action: "write", GrandAction: "read"},
+			requested:     Requested{RequestAction: "read"},
+			granted:       Granted{GrandAction: "read"},
 			expectedCount: 0,
 		},
 		{
 			name:          "wildcard in grand action",
-			requested:     Requested{Action: "read", RequestAction: "read"},
-			granted:       Granted{Action: "read", GrandAction: "*"},
+			requested:     Requested{RequestAction: "read"},
+			granted:       Granted{GrandAction: "*"},
 			expectedCount: 1,
 		},
 		{
 			name:          "wildcard in request action",
-			requested:     Requested{Action: "read", RequestAction: "*"},
-			granted:       Granted{Action: "read", GrandAction: "read"},
+			requested:     Requested{RequestAction: "*"},
+			granted:       Granted{GrandAction: "read"},
 			expectedCount: 1,
 		},
 		{
@@ -286,62 +286,62 @@ func TestRepository_FindRequested_matching(t *testing.T) {
 	}{
 		{
 			name:          "exact scheme match",
-			granted:       Granted{Scheme: "image", GrandScheme: "image"},
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "image"},
 			expectedCount: 1,
 		},
 		{
 			name:          "granted scheme does not match request scheme",
-			granted:       Granted{Scheme: "image", GrandScheme: "image"},
-			requested:     Requested{Scheme: "image", RequestScheme: "json"},
+			granted:       Granted{GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "json"},
 			expectedCount: 0,
 		},
 		{
 			name:          "grant scheme does not match requested scheme",
-			granted:       Granted{Scheme: "json", GrandScheme: "image"},
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "image"},
 			expectedCount: 0,
 		},
 		{
 			name:          "wildcard in request scheme",
-			granted:       Granted{Scheme: "image", GrandScheme: "image"},
-			requested:     Requested{Scheme: "image", RequestScheme: "*"},
+			granted:       Granted{GrandScheme: "image"},
+			requested:     Requested{RequestScheme: "*"},
 			expectedCount: 1,
 		},
 		{
 			name:          "wildcard in grand scheme",
-			granted:       Granted{Scheme: "image", GrandScheme: "*"},
-			requested:     Requested{Scheme: "image", RequestScheme: "image"},
+			granted:       Granted{GrandScheme: "*"},
+			requested:     Requested{RequestScheme: "image"},
 			expectedCount: 1,
 		},
 		{
 			name:          "exact action match",
-			granted:       Granted{Action: "read", GrandAction: "read"},
-			requested:     Requested{Action: "read", RequestAction: "read"},
+			granted:       Granted{GrandAction: "read"},
+			requested:     Requested{RequestAction: "read"},
 			expectedCount: 1,
 		},
 		{
 			name:          "granted action does not match request action",
-			granted:       Granted{Action: "read", GrandAction: "read"},
-			requested:     Requested{Action: "read", RequestAction: "write"},
+			granted:       Granted{GrandAction: "read"},
+			requested:     Requested{RequestAction: "write"},
 			expectedCount: 0,
 		},
 		{
 			name:          "grant action does not match requested action",
-			granted:       Granted{Action: "write", GrandAction: "read"},
-			requested:     Requested{Action: "read", RequestAction: "read"},
+			granted:       Granted{GrandAction: "read"},
+			requested:     Requested{RequestAction: "read"},
 			expectedCount: 0,
 		},
 		{
 			name:          "wildcard in request action",
-			granted:       Granted{Action: "read", GrandAction: "read"},
-			requested:     Requested{Action: "read", RequestAction: "*"},
+			granted:       Granted{GrandAction: "read"},
+			requested:     Requested{RequestAction: "*"},
 			expectedCount: 1,
 		},
 		{
 			name:          "wildcard in grand action",
-			granted:       Granted{Action: "read", GrandAction: "*"},
-			requested:     Requested{Action: "read", RequestAction: "read"},
+			granted:       Granted{GrandAction: "*"},
+			requested:     Requested{RequestAction: "read"},
 			expectedCount: 1,
 		},
 		{
@@ -513,12 +513,10 @@ func TestRepository_FindGranted_multiple_scheme_matches(t *testing.T) {
 
 	// Create two granted entries with the same scheme but different GrandScheme values
 	granted1 := Granted{
-		Scheme:      "image",
 		GrandScheme: "image",
 	}
 
 	granted2 := Granted{
-		Scheme:      "image",
 		GrandScheme: "json",
 	}
 
@@ -529,7 +527,6 @@ func TestRepository_FindGranted_multiple_scheme_matches(t *testing.T) {
 	// Create one requested entry that should match both granted entries using wildcard
 	requested := []Requested{
 		{
-			Scheme:        "image",
 			RequestScheme: "*", // Wildcard matches any GrandScheme
 		},
 	}
@@ -556,12 +553,10 @@ func TestRepository_FindRequested_multiple_scheme_matches(t *testing.T) {
 
 	// Create two requested entries with the same scheme but different RequestScheme values
 	requested1 := Requested{
-		Scheme:        "image",
 		RequestScheme: "image",
 	}
 
 	requested2 := Requested{
-		Scheme:        "image",
 		RequestScheme: "json",
 	}
 
@@ -571,7 +566,6 @@ func TestRepository_FindRequested_multiple_scheme_matches(t *testing.T) {
 
 	// Create one granted entry that should match both requested entries using wildcard
 	granted := Granted{
-		Scheme:      "image",
 		GrandScheme: "*", // Wildcard matches any RequestScheme when scheme matches
 	}
 
@@ -641,8 +635,6 @@ func TestFindRequested_RowsErr(t *testing.T) {
 	requested := Requested{
 		Description:                 "test",
 		DestinationPath:             "/test",
-		Scheme:                      "test",
-		Action:                      "test",
 		SourceOrganization:          "test",
 		SourceRepository:            "test",
 		UmbrellaOrganization:        "test",
@@ -665,8 +657,6 @@ func TestFindRequested_RowsErr(t *testing.T) {
 	// When - Try to find with matching criteria
 	granted := []Granted{
 		{
-			Scheme:                    "test",
-			Action:                    "test",
 			SourceOrganization:        "test",
 			SourceRepository:          "test",
 			UmbrellaOrganization:      "test",
@@ -699,8 +689,6 @@ func TestFindGranted_RowsErr(t *testing.T) {
 	granted := Granted{
 		Description:               "test",
 		ExposePath:                "/test",
-		Scheme:                    "test",
-		Action:                    "test",
 		SourceOrganization:        "test",
 		SourceRepository:          "test",
 		UmbrellaOrganization:      "test",
@@ -723,8 +711,6 @@ func TestFindGranted_RowsErr(t *testing.T) {
 	// When - Try to find with matching criteria
 	requested := []Requested{
 		{
-			Scheme:                      "test",
-			Action:                      "test",
 			SourceOrganization:          "test",
 			SourceRepository:            "test",
 			UmbrellaOrganization:        "test",
