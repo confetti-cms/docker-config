@@ -9,42 +9,42 @@ import (
 
 type Requested struct {
 	Description                 string `json:"description,omitempty"`
-	Host                        string `json:"host,omitempty"`
-	DestinationPath             string `json:"destination_path,omitempty"`
-	SourceOrganization          string `json:"source_organization,omitempty"`
-	SourceRepository            string `json:"source_repository,omitempty"`
-	UmbrellaOrganization        string `json:"umbrella_organization,omitempty"`
-	UmbrellaRepository          string `json:"umbrella_repository,omitempty"`
-	ContainerName               string `json:"container_name,omitempty"`
-	Target                      string `json:"target,omitempty"`
-	RequestScheme               string `json:"request_scheme,omitempty"`
-	RequestAction               string `json:"request_action,omitempty"`
-	RequestSourceOrganization   string `json:"request_source_organization,omitempty"`
-	RequestSourceRepository     string `json:"request_source_repository,omitempty"`
-	RequestUmbrellaOrganization string `json:"request_umbrella_organization,omitempty"`
-	RequestUmbrellaRepository   string `json:"request_umbrella_repository,omitempty"`
-	RequestContainerName        string `json:"request_container_name,omitempty"`
-	RequestTarget               string `json:"request_target,omitempty"`
+	Host                        string
+	DestinationPath             string
+	SourceOrganization          string
+	SourceRepository            string
+	UmbrellaOrganization        string
+	UmbrellaRepository          string
+	ContainerName               string
+	Target                      string
+	RequestScheme               string `json:"scheme,omitempty"`
+	RequestAction               string `json:"action,omitempty"`
+	RequestSourceOrganization   string `json:"source_organization,omitempty"`
+	RequestSourceRepository     string `json:"source_repository,omitempty"`
+	RequestUmbrellaOrganization string `json:"umbrella_organization,omitempty"`
+	RequestUmbrellaRepository   string `json:"umbrella_repository,omitempty"`
+	RequestContainerName        string `json:"container_name,omitempty"`
+	RequestTarget               string `json:"target,omitempty"`
 }
 
 type Granted struct {
 	Description               string `json:"description,omitempty"`
-	Host                      string `json:"host,omitempty"`
+	Host                      string
 	ExposePath                string `json:"expose_path,omitempty"`
-	SourceOrganization        string `json:"source_organization,omitempty"`
-	SourceRepository          string `json:"source_repository,omitempty"`
-	UmbrellaOrganization      string `json:"umbrella_organization,omitempty"`
-	UmbrellaRepository        string `json:"umbrella_repository,omitempty"`
-	ContainerName             string `json:"container_name,omitempty"`
-	Target                    string `json:"target,omitempty"`
-	GrandScheme               string `json:"grand_scheme,omitempty"`
-	GrandAction               string `json:"grand_action,omitempty"`
-	GrandSourceOrganization   string `json:"grand_source_organization,omitempty"`
-	GrandSourceRepository     string `json:"grand_source_repository,omitempty"`
-	GrandUmbrellaOrganization string `json:"grand_umbrella_organization,omitempty"`
-	GrandUmbrellaRepository   string `json:"grand_umbrella_repository,omitempty"`
-	GrandContainerName        string `json:"grand_container_name,omitempty"`
-	GrandTarget               string `json:"grand_target,omitempty"`
+	SourceOrganization        string
+	SourceRepository          string
+	UmbrellaOrganization      string
+	UmbrellaRepository        string
+	ContainerName             string
+	Target                    string
+	GrandScheme               string `json:"scheme,omitempty"`
+	GrandAction               string `json:"action,omitempty"`
+	GrandSourceOrganization   string `json:"source_organization,omitempty"`
+	GrandSourceRepository     string `json:"source_repository,omitempty"`
+	GrandUmbrellaOrganization string `json:"umbrella_organization,omitempty"`
+	GrandUmbrellaRepository   string `json:"umbrella_repository,omitempty"`
+	GrandContainerName        string `json:"container_name,omitempty"`
+	GrandTarget               string `json:"target,omitempty"`
 }
 
 func (dm *DbManager) SaveRequested(requested []Requested) error {
