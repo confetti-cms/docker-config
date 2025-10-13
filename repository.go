@@ -595,3 +595,63 @@ func FillRequestedByLocator(locator string, requested Requested) (Requested, err
 
 	return requested, nil
 }
+
+// FillGrantedByLocator parses a locator string and fills a Granted struct with the extracted values
+func FillGrantedByLocator(locator string, granted Granted) (Granted, error) {
+
+	// Parse the URL
+	u, err := url.Parse(locator)
+	if err != nil {
+		return granted, fmt.Errorf("invalid locator format: %w", err)
+	}
+
+	// Extract host (without leading //)
+	granted.Host = strings.TrimPrefix(u.Host, "//")
+
+	// Extract container name from path (remove leading /)
+	granted.ContainerName = strings.TrimPrefix(u.Path, "/")
+
+	// Extract query parameters
+	query := u.Query()
+	if target := query.Get("target"); target != "" {
+		granted.Target = target
+	}
+	if umbrellaOrg := query.Get("umbrella_organization"); umbrellaOrg != "" {
+		granted.UmbrellaOrganization = umbrellaOrg
+	}
+	if umbrellaRepo := query.Get("umbrella_repository"); umbrellaRepo != "" {
+		granted.UmbrellaRepository = umbrellaRepo
+	}
+	if sourceOrg := query.Get("source_organization"); sourceOrg != "" {
+		granted.SourceOrganization = sourceOrg
+	}
+	if sourceRepo := query.Get("source_repository"); sourceRepo != "" {
+		granted.SourceRepository = sourceRepo
+	}
+
+	// Fill individual Grand* fields with default values when they are empty
+	if granted.GrandAction == "" {
+		granted.GrandAction = "*"
+	}
+	if granted.GrandSourceOrganization == "" && granted.SourceOrganization != "" {
+		granted.GrandSourceOrganization = granted.SourceOrganization
+	}
+	if granted.GrandSourceRepository == "" && granted.SourceRepository != "" {
+		granted.GrandSourceRepository = granted.SourceRepository
+	}
+	if granted.GrandUmbrellaOrganization == "" && granted.UmbrellaOrganization != "" {
+		granted.GrandUmbrellaOrganization = granted.UmbrellaOrganization
+	}
+	if granted.GrandUmbrellaRepository == "" && granted.UmbrellaRepository != "" {
+		granted.GrandUmbrellaRepository = granted.UmbrellaRepository
+	}
+	if granted.GrandContainerName == "" && granted.ContainerName != "" {
+		granted.GrandContainerName = granted.ContainerName
+	}
+	if granted.GrandTarget == "" && granted.Target != "" {
+		granted.GrandTarget = granted.Target
+	}
+	// GrandScheme remains empty as granted
+
+	return granted, nil
+}
