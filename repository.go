@@ -558,11 +558,15 @@ func FillRequestedByLocator(locator string, requested Requested) (Requested, err
 	}
 	if umbrellaOrg := query.Get("umbrella_organization"); umbrellaOrg != "" {
 		requested.UmbrellaOrganization = umbrellaOrg
-		requested.SourceOrganization = umbrellaOrg // Based on test expectations
 	}
 	if umbrellaRepo := query.Get("umbrella_repository"); umbrellaRepo != "" {
 		requested.UmbrellaRepository = umbrellaRepo
-		requested.SourceRepository = umbrellaRepo // Based on test expectations
+	}
+	if sourceOrg := query.Get("source_organization"); sourceOrg != "" {
+		requested.SourceOrganization = sourceOrg
+	}
+	if sourceRepo := query.Get("source_repository"); sourceRepo != "" {
+		requested.SourceRepository = sourceRepo
 	}
 
 	return requested, nil

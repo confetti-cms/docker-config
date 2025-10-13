@@ -8,7 +8,7 @@ import (
 
 func TestRepositoryLocator_fill_requested_with_empty_requested(t *testing.T) {
 	// Given
-	locator := "//confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-cmd/image/container?environment_name=local&environment_stage=development&target=cmd&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms"
+	locator := "//confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-cmd/image/container?environment_name=local&environment_stage=development&target=cmd&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms&source_organization=different-org&source_repository=different-repo"
 	requested := Requested{}
 
 	// When
@@ -18,8 +18,8 @@ func TestRepositoryLocator_fill_requested_with_empty_requested(t *testing.T) {
 	is := is.New(t)
 	is.NoErr(err)
 	is.Equal(result.Host, "confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-cmd")
-	is.Equal(result.SourceOrganization, "confetti-sites")
-	is.Equal(result.SourceRepository, "confetti-cms")
+	is.Equal(result.SourceOrganization, "different-org")
+	is.Equal(result.SourceRepository, "different-repo")
 	is.Equal(result.UmbrellaOrganization, "confetti-sites")
 	is.Equal(result.UmbrellaRepository, "confetti-cms")
 	is.Equal(result.ContainerName, "image/container")
@@ -38,7 +38,7 @@ func TestRepositoryLocator_fill_requested_with_empty_requested(t *testing.T) {
 
 func TestRepositoryLocator_fill_requested_with_filled_requested(t *testing.T) {
 	// Given
-	locator := "//confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-all_up/image/container?environment_name=local&environment_stage=development&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms&target=all_up"
+	locator := "//confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-all_up/image/container?environment_name=local&environment_stage=development&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms&source_organization=custom-source-org&source_repository=custom-source-repo&target=all_up"
 	requested := Requested{
 		Description:                 "My description",
 		DestinationPath:             "/my/path",
@@ -59,8 +59,8 @@ func TestRepositoryLocator_fill_requested_with_filled_requested(t *testing.T) {
 	is := is.New(t)
 	is.NoErr(err)
 	is.Equal(result.Host, "confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-all_up")
-	is.Equal(result.SourceOrganization, "confetti-sites")
-	is.Equal(result.SourceRepository, "confetti-cms")
+	is.Equal(result.SourceOrganization, "custom-source-org")
+	is.Equal(result.SourceRepository, "custom-source-repo")
 	is.Equal(result.UmbrellaOrganization, "confetti-sites")
 	is.Equal(result.UmbrellaRepository, "confetti-cms")
 	is.Equal(result.ContainerName, "image/container")
