@@ -254,18 +254,11 @@ func TestRepository_FindGranted_matching(t *testing.T) {
 			r := mockRequested(db, tt.requested)
 			mockGranted(db, tt.granted)
 
-			// Debug output
-			t.Logf("Test: %s", tt.name)
-			t.Logf("Requested: %+v", tt.requested)
-			t.Logf("Granted: %+v", tt.granted)
-			t.Logf("Expected count: %d", tt.expectedCount)
-
 			// When
 			result, err := db.FindGranted(r)
 
 			// Then
 			is.NoErr(err)
-			t.Logf("Actual count: %d", len(result))
 			is.Equal(len(result), tt.expectedCount)
 		})
 	}
