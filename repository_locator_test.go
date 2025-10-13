@@ -27,13 +27,13 @@ func TestRepositoryLocator_fill_requested_with_empty_requested(t *testing.T) {
 	is.Equal(result.Description, "")
 	is.Equal(result.DestinationPath, "")
 	is.Equal(result.RequestScheme, "")
-	is.Equal(result.RequestAction, "")
-	is.Equal(result.RequestSourceOrganization, "")
-	is.Equal(result.RequestSourceRepository, "")
-	is.Equal(result.RequestUmbrellaOrganization, "")
-	is.Equal(result.RequestUmbrellaRepository, "")
-	is.Equal(result.RequestContainerName, "")
-	is.Equal(result.RequestTarget, "")
+	is.Equal(result.RequestAction, "*")
+	is.Equal(result.RequestSourceOrganization, "different-org")
+	is.Equal(result.RequestSourceRepository, "different-repo")
+	is.Equal(result.RequestUmbrellaOrganization, "confetti-sites")
+	is.Equal(result.RequestUmbrellaRepository, "confetti-cms")
+	is.Equal(result.RequestContainerName, "image/container")
+	is.Equal(result.RequestTarget, "cmd")
 }
 
 func TestRepositoryLocator_fill_requested_with_filled_requested(t *testing.T) {

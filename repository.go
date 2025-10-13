@@ -569,5 +569,22 @@ func FillRequestedByLocator(locator string, requested Requested) (Requested, err
 		requested.SourceRepository = sourceRepo
 	}
 
+	// Fill Request* fields with default values when requested struct is empty
+	if requested.RequestScheme == "" && requested.RequestAction == "" &&
+		requested.RequestSourceOrganization == "" && requested.RequestSourceRepository == "" &&
+		requested.RequestUmbrellaOrganization == "" && requested.RequestUmbrellaRepository == "" &&
+		requested.RequestContainerName == "" && requested.RequestTarget == "" {
+
+		// Set default values for Request* fields
+		requested.RequestAction = "*"
+		requested.RequestSourceOrganization = requested.SourceOrganization
+		requested.RequestSourceRepository = requested.SourceRepository
+		requested.RequestUmbrellaOrganization = requested.UmbrellaOrganization
+		requested.RequestUmbrellaRepository = requested.UmbrellaRepository
+		requested.RequestContainerName = requested.ContainerName
+		requested.RequestTarget = requested.Target
+		// RequestScheme remains empty as requested
+	}
+
 	return requested, nil
 }
