@@ -757,5 +757,3 @@ func mockRequested(db *DbManager, requested Requested) []Requested {
 	}
 	return []Requested{requested}
 }
-
-// confetti-sites-confetti-cms_local_pkg-confetti-cms-image-container_8609-development-cmd/confetti-cms/image/pkg/confetti-cms/image/container?environment_name=local&environment_stage=development&target=cmd&umbrella_organization=confetti-sites&umbrella_repository=confetti-cms

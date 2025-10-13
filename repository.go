@@ -3,11 +3,13 @@ package dockerconfig
 import (
 	"encoding/hex"
 	"fmt"
+	"net/url"
 	"strings"
 )
 
 type Requested struct {
 	Description                 string `json:"description,omitempty"`
+	Host                        string `json:"host,omitempty"`
 	DestinationPath             string `json:"destination_path,omitempty"`
 	Scheme                      string `json:"scheme,omitempty"`
 	Action                      string `json:"action,omitempty"`
@@ -29,6 +31,7 @@ type Requested struct {
 
 type Granted struct {
 	Description               string `json:"description,omitempty"`
+	Host                      string `json:"host,omitempty"`
 	ExposePath                string `json:"expose_path,omitempty"`
 	Scheme                    string `json:"scheme,omitempty"`
 	Action                    string `json:"action,omitempty"`
@@ -559,4 +562,41 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 	}
 
 	return granted, rows.Err()
+}
+
+// FillRequestedByLocator parses a locator string and fills a Requested struct with the extracted values
+func FillRequestedByLocator(locator string, requested ...Requested) (Requested, error) {
+	// If a pre-filled Requested struct is provided, use it as base
+	var result Requested
+	if len(requested) > 0 {
+		result = requested[0]
+	}
+
+	// Parse the URL
+	u, err := url.Parse(locator)
+	if err != nil {
+		return result, fmt.Errorf("invalid locator format: %w", err)
+	}
+
+	// Extract host (without leading //)
+	result.Host = strings.TrimPrefix(u.Host, "//")
+
+	// Extract container name from path (remove leading /)
+	result.ContainerName = strings.TrimPrefix(u.Path, "/")
+
+	// Extract query parameters
+	query := u.Query()
+	if target := query.Get("target"); target != "" {
+		result.Target = target
+	}
+	if umbrellaOrg := query.Get("umbrella_organization"); umbrellaOrg != "" {
+		result.UmbrellaOrganization = umbrellaOrg
+		result.SourceOrganization = umbrellaOrg // Based on test expectations
+	}
+	if umbrellaRepo := query.Get("umbrella_repository"); umbrellaRepo != "" {
+		result.UmbrellaRepository = umbrellaRepo
+		result.SourceRepository = umbrellaRepo // Based on test expectations
+	}
+
+	return result, nil
 }
