@@ -56,7 +56,7 @@ func TestRepository_FindGranted_matching(t *testing.T) {
 		{
 			name:          "request scheme does not match granted scheme",
 			requested:     Requested{RequestScheme: "image"},
-			granted:       Granted{GrandScheme: "image"},
+			granted:       Granted{GrandScheme: "json"},
 			expectedCount: 0,
 		},
 		{
@@ -86,7 +86,7 @@ func TestRepository_FindGranted_matching(t *testing.T) {
 		{
 			name:          "request action does not match granted action",
 			requested:     Requested{RequestAction: "read"},
-			granted:       Granted{GrandAction: "read"},
+			granted:       Granted{GrandAction: "write"},
 			expectedCount: 0,
 		},
 		{
@@ -254,11 +254,18 @@ func TestRepository_FindGranted_matching(t *testing.T) {
 			r := mockRequested(db, tt.requested)
 			mockGranted(db, tt.granted)
 
+			// Debug output
+			t.Logf("Test: %s", tt.name)
+			t.Logf("Requested: %+v", tt.requested)
+			t.Logf("Granted: %+v", tt.granted)
+			t.Logf("Expected count: %d", tt.expectedCount)
+
 			// When
 			result, err := db.FindGranted(r)
 
 			// Then
 			is.NoErr(err)
+			t.Logf("Actual count: %d", len(result))
 			is.Equal(len(result), tt.expectedCount)
 		})
 	}
@@ -299,7 +306,7 @@ func TestRepository_FindRequested_matching(t *testing.T) {
 		{
 			name:          "grant scheme does not match requested scheme",
 			granted:       Granted{GrandScheme: "image"},
-			requested:     Requested{RequestScheme: "image"},
+			requested:     Requested{RequestScheme: "json"},
 			expectedCount: 0,
 		},
 		{
@@ -329,7 +336,7 @@ func TestRepository_FindRequested_matching(t *testing.T) {
 		{
 			name:          "grant action does not match requested action",
 			granted:       Granted{GrandAction: "read"},
-			requested:     Requested{RequestAction: "read"},
+			requested:     Requested{RequestAction: "write"},
 			expectedCount: 0,
 		},
 		{

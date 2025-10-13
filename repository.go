@@ -253,9 +253,8 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var schemeCondition string
 		if g.GrandScheme == "*" {
-			// If GrandScheme is "*", match any RequestScheme
-			schemeCondition = "request_scheme = ?"
-			args = append(args, g.GrandScheme)
+			// If GrandScheme is "*", match any RequestScheme - no condition needed
+			schemeCondition = "1=1" // Always true condition
 		} else {
 			// Match when request_scheme equals the grand_scheme OR request_scheme is "*"
 			schemeCondition = "(request_scheme = ? OR request_scheme = '*')"
@@ -264,9 +263,8 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var actionCondition string
 		if g.GrandAction == "*" {
-			// If GrandAction is "*", match any RequestAction
-			actionCondition = "request_action = ?"
-			args = append(args, g.GrandAction)
+			// If GrandAction is "*", match any RequestAction - no condition needed
+			actionCondition = "1=1" // Always true condition
 		} else {
 			// Match when request_action equals the grand_action OR request_action is "*"
 			actionCondition = "(request_action = ? OR request_action = '*')"
@@ -276,7 +274,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 		// Organization and Repository matching conditions
 		var sourceOrgCondition string
 		if g.GrandSourceOrganization == "*" {
-			// If GrandSourceOrg is "*", match any RequestSourceOrganization
+			// If GrandSourceOrg is "*", match any RequestSourceOrganization - no condition needed for the request field
 			sourceOrgCondition = "source_organization = ?"
 			args = append(args, g.SourceOrganization)
 		} else {
@@ -287,7 +285,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var sourceRepoCondition string
 		if g.GrandSourceRepository == "*" {
-			// If GrandSourceRepo is "*", match any RequestSourceRepository
+			// If GrandSourceRepo is "*", match any RequestSourceRepository - no condition needed for the request field
 			sourceRepoCondition = "source_repository = ?"
 			args = append(args, g.SourceRepository)
 		} else {
@@ -298,7 +296,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var umbrellaOrgCondition string
 		if g.GrandUmbrellaOrganization == "*" {
-			// If GrandUmbrellaOrg is "*", match any RequestUmbrellaOrganization
+			// If GrandUmbrellaOrg is "*", match any RequestUmbrellaOrganization - no condition needed for the request field
 			umbrellaOrgCondition = "umbrella_organization = ?"
 			args = append(args, g.UmbrellaOrganization)
 		} else {
@@ -309,7 +307,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var umbrellaRepoCondition string
 		if g.GrandUmbrellaRepository == "*" {
-			// If GrandUmbrellaRepo is "*", match any RequestUmbrellaRepository
+			// If GrandUmbrellaRepo is "*", match any RequestUmbrellaRepository - no condition needed for the request field
 			umbrellaRepoCondition = "umbrella_repository = ?"
 			args = append(args, g.UmbrellaRepository)
 		} else {
@@ -320,7 +318,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var containerNameCondition string
 		if g.GrandContainerName == "*" {
-			// If GrandContainerName is "*", match any RequestContainerName
+			// If GrandContainerName is "*", match any RequestContainerName - no condition needed for the request field
 			containerNameCondition = "container_name = ?"
 			args = append(args, g.ContainerName)
 		} else {
@@ -331,7 +329,7 @@ func (dm *DbManager) FindRequested(granted []Granted) ([]Requested, error) {
 
 		var targetCondition string
 		if g.GrandTarget == "*" {
-			// If GrandTarget is "*", match any RequestTarget
+			// If GrandTarget is "*", match any RequestTarget - no condition needed for the request field
 			targetCondition = "target = ?"
 			args = append(args, g.Target)
 		} else {
@@ -405,9 +403,8 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var schemeCondition string
 		if req.RequestScheme == "*" {
-			// If RequestScheme is "*", match any GrandScheme
-			schemeCondition = "grand_scheme = ?"
-			args = append(args, req.RequestScheme)
+			// If RequestScheme is "*", match any GrandScheme - no condition needed for scheme
+			schemeCondition = "1=1" // Always true condition
 		} else {
 			// Match when grand_scheme equals the request_scheme OR grand_scheme is "*"
 			schemeCondition = "(grand_scheme = ? OR grand_scheme = '*')"
@@ -416,9 +413,8 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var actionCondition string
 		if req.RequestAction == "*" {
-			// If RequestAction is "*", match any GrandAction
-			actionCondition = "grand_action = ?"
-			args = append(args, req.RequestAction)
+			// If RequestAction is "*", match any GrandAction - no condition needed
+			actionCondition = "1=1" // Always true condition
 		} else {
 			// Match when grand_action equals the request_action OR grand_action is "*"
 			actionCondition = "(grand_action = ? OR grand_action = '*')"
@@ -428,7 +424,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 		// Organization and Repository matching conditions
 		var sourceOrgCondition string
 		if req.RequestSourceOrganization == "*" {
-			// If RequestSourceOrg is "*", match any GrandSourceOrganization
+			// If RequestSourceOrg is "*", match any GrandSourceOrganization - no condition needed for the grand field
 			sourceOrgCondition = "source_organization = ?"
 			args = append(args, req.SourceOrganization)
 		} else {
@@ -439,7 +435,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var sourceRepoCondition string
 		if req.RequestSourceRepository == "*" {
-			// If RequestSourceRepo is "*", match any GrandSourceRepository
+			// If RequestSourceRepo is "*", match any GrandSourceRepository - no condition needed for the grand field
 			sourceRepoCondition = "source_repository = ?"
 			args = append(args, req.SourceRepository)
 		} else {
@@ -450,7 +446,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var umbrellaOrgCondition string
 		if req.RequestUmbrellaOrganization == "*" {
-			// If RequestUmbrellaOrg is "*", match any GrandUmbrellaOrganization
+			// If RequestUmbrellaOrg is "*", match any GrandUmbrellaOrganization - no condition needed for the grand field
 			umbrellaOrgCondition = "umbrella_organization = ?"
 			args = append(args, req.UmbrellaOrganization)
 		} else {
@@ -461,7 +457,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var umbrellaRepoCondition string
 		if req.RequestUmbrellaRepository == "*" {
-			// If RequestUmbrellaRepo is "*", match any GrandUmbrellaRepository
+			// If RequestUmbrellaRepo is "*", match any GrandUmbrellaRepository - no condition needed for the grand field
 			umbrellaRepoCondition = "umbrella_repository = ?"
 			args = append(args, req.UmbrellaRepository)
 		} else {
@@ -472,7 +468,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var containerNameCondition string
 		if req.RequestContainerName == "*" {
-			// If RequestContainerName is "*", match any GrandContainerName
+			// If RequestContainerName is "*", match any GrandContainerName - no condition needed for the grand field
 			containerNameCondition = "container_name = ?"
 			args = append(args, req.ContainerName)
 		} else {
@@ -483,7 +479,7 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 
 		var targetCondition string
 		if req.RequestTarget == "*" {
-			// If RequestTarget is "*", match any GrandTarget
+			// If RequestTarget is "*", match any GrandTarget - no condition needed for the grand field
 			targetCondition = "target = ?"
 			args = append(args, req.Target)
 		} else {
