@@ -565,38 +565,33 @@ func (dm *DbManager) FindGranted(requested []Requested) ([]Granted, error) {
 }
 
 // FillRequestedByLocator parses a locator string and fills a Requested struct with the extracted values
-func FillRequestedByLocator(locator string, requested ...Requested) (Requested, error) {
-	// If a pre-filled Requested struct is provided, use it as base
-	var result Requested
-	if len(requested) > 0 {
-		result = requested[0]
-	}
+func FillRequestedByLocator(locator string, requested Requested) (Requested, error) {
 
 	// Parse the URL
 	u, err := url.Parse(locator)
 	if err != nil {
-		return result, fmt.Errorf("invalid locator format: %w", err)
+		return requested, fmt.Errorf("invalid locator format: %w", err)
 	}
 
 	// Extract host (without leading //)
-	result.Host = strings.TrimPrefix(u.Host, "//")
+	requested.Host = strings.TrimPrefix(u.Host, "//")
 
 	// Extract container name from path (remove leading /)
-	result.ContainerName = strings.TrimPrefix(u.Path, "/")
+	requested.ContainerName = strings.TrimPrefix(u.Path, "/")
 
 	// Extract query parameters
 	query := u.Query()
 	if target := query.Get("target"); target != "" {
-		result.Target = target
+		requested.Target = target
 	}
 	if umbrellaOrg := query.Get("umbrella_organization"); umbrellaOrg != "" {
-		result.UmbrellaOrganization = umbrellaOrg
-		result.SourceOrganization = umbrellaOrg // Based on test expectations
+		requested.UmbrellaOrganization = umbrellaOrg
+		requested.SourceOrganization = umbrellaOrg // Based on test expectations
 	}
 	if umbrellaRepo := query.Get("umbrella_repository"); umbrellaRepo != "" {
-		result.UmbrellaRepository = umbrellaRepo
-		result.SourceRepository = umbrellaRepo // Based on test expectations
+		requested.UmbrellaRepository = umbrellaRepo
+		requested.SourceRepository = umbrellaRepo // Based on test expectations
 	}
 
-	return result, nil
+	return requested, nil
 }
