@@ -569,22 +569,29 @@ func FillRequestedByLocator(locator string, requested Requested) (Requested, err
 		requested.SourceRepository = sourceRepo
 	}
 
-	// Fill Request* fields with default values when requested struct is empty
-	if requested.RequestScheme == "" && requested.RequestAction == "" &&
-		requested.RequestSourceOrganization == "" && requested.RequestSourceRepository == "" &&
-		requested.RequestUmbrellaOrganization == "" && requested.RequestUmbrellaRepository == "" &&
-		requested.RequestContainerName == "" && requested.RequestTarget == "" {
-
-		// Set default values for Request* fields
+	// Fill individual Request* fields with default values when they are empty
+	if requested.RequestAction == "" {
 		requested.RequestAction = "*"
-		requested.RequestSourceOrganization = requested.SourceOrganization
-		requested.RequestSourceRepository = requested.SourceRepository
-		requested.RequestUmbrellaOrganization = requested.UmbrellaOrganization
-		requested.RequestUmbrellaRepository = requested.UmbrellaRepository
-		requested.RequestContainerName = requested.ContainerName
-		requested.RequestTarget = requested.Target
-		// RequestScheme remains empty as requested
 	}
+	if requested.RequestSourceOrganization == "" && requested.SourceOrganization != "" {
+		requested.RequestSourceOrganization = requested.SourceOrganization
+	}
+	if requested.RequestSourceRepository == "" && requested.SourceRepository != "" {
+		requested.RequestSourceRepository = requested.SourceRepository
+	}
+	if requested.RequestUmbrellaOrganization == "" && requested.UmbrellaOrganization != "" {
+		requested.RequestUmbrellaOrganization = requested.UmbrellaOrganization
+	}
+	if requested.RequestUmbrellaRepository == "" && requested.UmbrellaRepository != "" {
+		requested.RequestUmbrellaRepository = requested.UmbrellaRepository
+	}
+	if requested.RequestContainerName == "" && requested.ContainerName != "" {
+		requested.RequestContainerName = requested.ContainerName
+	}
+	if requested.RequestTarget == "" && requested.Target != "" {
+		requested.RequestTarget = requested.Target
+	}
+	// RequestScheme remains empty as requested
 
 	return requested, nil
 }
