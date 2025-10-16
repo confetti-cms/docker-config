@@ -1,4 +1,4 @@
-module github.com/confetti-cms/sync
+module github.com/confetti-cms/syncer
 
 go 1.23
 

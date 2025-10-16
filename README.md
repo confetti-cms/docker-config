@@ -1,4 +1,4 @@
-# SyncMatcher
+# syncerMatcher
 
 A flexible permission matcher that supports wildcard matching for configuration validation.
 
@@ -14,13 +14,13 @@ Permission matching isn't just for security nerds. If you want to know who can d
 ## Basic Usage
 
 ```go
-result := SyncMatcher(requested, granted)
+result := syncerMatcher(requested, granted)
 ```
 
 ## Type Signature
 
 ```go
-func SyncMatcher(requested map[string]string, granted Granted) bool
+func syncerMatcher(requested map[string]string, granted Granted) bool
 ```
 
 ## Parameters
