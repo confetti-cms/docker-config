@@ -1,4 +1,4 @@
-package dockerconfig
+package sync
 
 import (
 	"encoding/hex"
